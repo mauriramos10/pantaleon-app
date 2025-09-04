@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pantaleon · Extracción de Jugo</title>
+  <style>
+    :root{
+      --brand:#f26a21; /* naranja Pantaleon */
+      --brand-dark:#c44f11;
+      --ink:#0a0a0a;
+      --muted:#6b7280;
+      --bg:#f5f7f6;
+      --card:#ffffff;
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .shell{max-width:1200px;margin:24px auto;padding:0 16px}
+    .header{background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.06);padding:14px 18px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .area{justify-self:center;text-align:center}
+    .area small{display:block;color:var(--muted);font-weight:500;margin-top:2px}
+    .meta{justify-self:end;text-align:right}
+    .meta .clock{font-variant-numeric:tabular-nums; font-weight:600}
+    .meta .date{color:var(--muted);font-size:12px}
+    .details{margin-top:8px;text-align:center;color:var(--muted);font-size:14px}
+    .toolbar{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer;transition:.15s transform ease,.2s box-shadow ease}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(10,123,62,.25)}
+    .btn.secondary{background:#e9f6ef;color:var(--brand);} 
+    .card{margin-top:16px;background:var(--card);border-radius:var(--radius);box-shadow:0 6px 20px rgba(0,0,0,.05);padding:18px}
+    .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    @media (max-width: 768px){
+      .header{grid-template-columns:1fr; text-align:center}
+      .meta{justify-self:center}
+      .area{justify-self:center}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="header" role="banner">
+      <div class="logo" aria-label="Pantaleon">
+        <img src="data:image/png;base64,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" alt="Pantaleon" style="height:40px;width:auto;display:block" />
+      </div>
+      <div class="area">
+        <div style="font-weight:700">Extracción de Jugo</div>
+        <small>Área</small>
+      </div>
+      <div class="meta">
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="date" id="date">Cargando fecha…</div>
+        <div class="resp" style="margin-top:6px;font-size:12px;color:var(--muted)">Responsable: <strong id="responsable">(definir)</strong></div>
+      </div>
+    </header>
+
+    <div class="details">
+      Ingenio <span id="ingenio">Pantaleon</span> · Ubicación: <span id="ubicacion">Guatemala</span>
+    </div>
+
+    <div class="toolbar" role="group" aria-label="Acciones rápidas">
+      <button class="btn" id="btn-imprimir">Imprimir</button>
+      <button class="btn secondary" id="btn-cambiar-area" title="Cambia el texto del área">Cambiar área</button>
+      <button class="btn secondary" id="btn-cambiar-resp" title="Define el responsable">Cambiar responsable</button>
+    </div>
+
+    <section class="card">
+      <h2 style="margin:0 0 8px 0">Bienvenido</h2>
+      <p class="muted">Este es el esqueleto inicial de la aplicación. El encabezado muestra el logo, la fecha y hora actuales en la zona horaria de Guatemala, el nombre del área, además del ingenio, ubicación y responsable. Desde aquí iremos agregando módulos (registros, buscadores, reportes, etc.).</p>
+    </section>
+  </div>
+
+  <script>
+    const GT_TZ = 'America/Guatemala';
+    function updateClock(){
+      const now = new Date();
+      const time = new Intl.DateTimeFormat('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: GT_TZ }).format(now);
+      const date = new Intl.DateTimeFormat('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: '2-digit', timeZone: GT_TZ }).format(now);
+      document.getElementById('clock').textContent = time;
+      document.getElementById('date').textContent = date.charAt(0).toUpperCase() + date.slice(1);
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    document.getElementById('btn-imprimir').addEventListener('click', () => window.print());
+    document.getElementById('btn-cambiar-area').addEventListener('click', () => {
+      const current = document.querySelector('.area div').textContent.trim();
+      const next = prompt('Escribe el nombre del área:', current);
+      if(next && next.trim()){
+        document.querySelector('.area div').textContent = next.trim();
+        document.title = `Pantaleon · ${next.trim()}`;
+      }
+    });
+
+    function getParam(name){
+      const p = new URLSearchParams(window.location.search);
+      return p.get(name);
+    }
+
+    const responsableEl = document.getElementById('responsable');
+    function askResponsable(pref=''){
+      const name = prompt('Escribe el nombre del responsable:', pref || responsableEl.textContent.replace('(definir)','').trim());
+      if(name && name.trim()){
+        responsableEl.textContent = name.trim();
+        localStorage.setItem('pant_responsable', name.trim());
+      }
+    }
+    const savedResp = localStorage.getItem('pant_responsable');
+    const qpResp = getParam('responsable');
+    if(qpResp){
+      responsableEl.textContent = qpResp;
+      localStorage.setItem('pant_responsable', qpResp);
+    } else if(savedResp){
+      responsableEl.textContent = savedResp;
+    } else {
+      askResponsable('');
+    }
+    const btnResp = document.getElementById('btn-cambiar-resp');
+    if(btnResp){ btnResp.addEventListener('click', () => askResponsable('')); }
+
+    const ingenioEl = document.getElementById('ingenio');
+    const ubicEl = document.getElementById('ubicacion');
+    const qpIng = getParam('ingenio');
+    const qpUbi = getParam('ubicacion');
+    if(qpIng){ ingenioEl.textContent = qpIng; }
+    if(qpUbi){ ubicEl.textContent = qpUbi; }
+  </script>
+</body>
+</html>
