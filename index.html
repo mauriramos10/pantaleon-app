@@ -26,12 +26,10 @@
     .meta .clock{font-variant-numeric:tabular-nums; font-weight:600}
     .meta .date{color:var(--muted);font-size:12px}
     .details{margin-top:8px;text-align:center;color:var(--muted);font-size:14px}
-
     .toolbar{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer;transition:.15s transform ease,.2s box-shadow ease}
     .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(10,123,62,.25)}
     .btn.secondary{background:#e9f6ef;color:var(--brand);}
-
     .segmented{display:inline-flex;border:1px solid #e5e7eb;border-radius:999px;overflow:hidden;background:#fff}
     .segmented input{display:none}
     .segmented label{padding:8px 14px;cursor:pointer;font-weight:600;font-size:14px;color:#374151}
@@ -79,18 +77,14 @@
     </div>
 
     <div class="toolbar" role="group" aria-label="Filtros">
-      <!-- Filtro por TIPO -->
       <div class="segmented" id="tipoSeg">
         <input type="radio" id="tipo_bomba" name="tipo" value="BOMBA">
         <label for="tipo_bomba">Bombas</label>
         <input type="radio" id="tipo_reductor" name="tipo" value="REDUCTOR">
         <label for="tipo_reductor">Reductores</label>
       </div>
-
-      <!-- Filtro por nombre de equipo y selector -->
       <input class="input" id="filtro" placeholder="Filtrar equipo por nombre..." />
       <select class="select" id="equipos"></select>
-
       <button class="btn secondary" id="btn-cambiar-resp">Cambiar responsable</button>
     </div>
 
@@ -127,7 +121,6 @@
 
   <script id="data" type="application/json">{"MESA 1": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM B", "ubicacion_tecnica": "PSAI-AZ-EX-PC/MCB-MESA01", "codigo_sap_equipo": "", "marca_equipo": "SUMITOMO"}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "SUMITOMO", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "REDUCTOR SUMITOMO": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM B", "ubicacion_tecnica": "PSAI-AZ-EX-PC/MCB-MESA02", "codigo_sap_equipo": "", "marca_equipo": "SUMITOMO"}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "SUMITOMO", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "RODO NIVELADOR 2": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM B", "ubicacion_tecnica": "PSAI-AZ-EX-PC/MCB-MESA02", "codigo_sap_equipo": "", "marca_equipo": "FALK"}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "FALK", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "TRASH 1": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM B", "ubicacion_tecnica": "PSAI-AZ-EX-PC/COB-STRSTB", "codigo_sap_equipo": "", "marca_equipo": "SUMITOMO"}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "SUMITOMO", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "TRASH 2": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM B", "ubicacion_tecnica": "PSAI-AZ-EX-PC/COB-STRSTB", "codigo_sap_equipo": "", "marca_equipo": "SUMITOMO"}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "SUMITOMO", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "MOLINO 4": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM A", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": "RENK ZANINI"}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "RENK ZANINI", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "MOLINO 5 ALTA": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM B", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "INTERMEDIO #6": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM A", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "INTERMEDIO #3": {"meta": {"tipo": "REDUCTOR", "area": "TANDEM A", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "ALTA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba 1 Enfriamiento Variadores de Molinos": {"meta": {"tipo": "BOMBA", "area": "TORRE DE ENFRIAMIENTO", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TEF", "codigo_sap_equipo": "120745", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba 2 Enfriamiento Variadores de Molinos": {"meta": {"tipo": "BOMBA", "area": "TORRE DE ENFRIAMIENTO", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TEF", "codigo_sap_equipo": "120747", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba 1 Enfriamiento Hidraulicos MTA": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TEF", "codigo_sap_equipo": "109303", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba 2 Enfriamiento Hidraulicos Aux": {"meta": {"tipo": "BOMBA", "area": "TB", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TEF", "codigo_sap_equipo": "109304", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba 3 Enfriamiento Hidraulicos MTB": {"meta": {"tipo": "BOMBA", "area": "TB", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TEF", "codigo_sap_equipo": "109305", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba de Agua Asepsia #1 TA": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/ASE", "codigo_sap_equipo": "137330", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba de Agua Asepsia #1 TB": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/ASE", "codigo_sap_equipo": "137332", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba de Agua Asepsia Aux": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/ASE", "codigo_sap_equipo": "137331", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba de Agua Imbibición 1 TB": {"meta": {"tipo": "BOMBA", "area": "TB", "ubicacion_tecnica": "PSAI-AZ-EX-MO/IMB", "codigo_sap_equipo": "109191", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}, {"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba de Agua Imbibición 1 TA": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/ASE", "codigo_sap_equipo": "109182", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba de Agua Imbibición Aux TA/TB": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/ASE", "codigo_sap_equipo": "121810", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba 2 Jugo Mezclado TA": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/MJA-TQJMTA", "codigo_sap_equipo": "122147", "marca_equipo": ""}, "items": [{"componente": "POLEA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba Retorno Agua de Molinos TB": {"meta": {"tipo": "BOMBA", "area": "TB", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TCB", "codigo_sap_equipo": "123853", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba Retorno Agua de Molinos TA": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "PSAI-AZ-EX-MO/TCA", "codigo_sap_equipo": "123819", "marca_equipo": ""}, "items": [{"componente": "POLEA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "MEZCLADOR #1 TA": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "POLEA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "MACERACIÓN #1 TB": {"meta": {"tipo": "BOMBA", "area": "TB", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "Bomba Maceración 2 TB": {"meta": {"tipo": "BOMBA", "area": "TB", "ubicacion_tecnica": "", "codigo_sap_equipo": "121815", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "FILTRADO #2": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "MACERACIÓN #4": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "LADO POLEA", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}, "FILTRADO #1": {"meta": {"tipo": "BOMBA", "area": "TA", "ubicacion_tecnica": "", "codigo_sap_equipo": "", "marca_equipo": ""}, "items": [{"componente": "LADO COPLING", "caracteristicas": "", "marca": "", "codigo_repuesto": "", "descripcion_sap": "None"}]}}</script>
   <script>
-    // Reloj y fecha en zona GT
     const GT_TZ = 'America/Guatemala';
     function updateClock(){
       const now = new Date();
@@ -138,17 +131,14 @@
     }
     updateClock(); setInterval(updateClock, 1000);
 
-    // Responsable editable persistente
     function getParam(name){ const p = new URLSearchParams(window.location.search); return p.get(name); }
     const respEl = document.getElementById('responsable');
     function askResp(pref=''){ const name = prompt('Escribe el nombre del responsable:', pref || respEl.textContent.replace('(definir)','').trim()); if(name && name.trim()){ respEl.textContent = name.trim(); localStorage.setItem('pant_responsable', name.trim()); } }
     document.getElementById('btn-cambiar-resp').addEventListener('click', () => askResp(''));
     const saved = localStorage.getItem('pant_responsable'); const qp = getParam('responsable'); if(qp){ respEl.textContent = qp; localStorage.setItem('pant_responsable', qp);} else if(saved){ respEl.textContent = saved;} else { askResp(''); }
 
-    // DATA
     const DATA = JSON.parse(document.getElementById('data').textContent);
     const EQUIPOS = Object.keys(DATA);
-    // Index por tipo
     const EQUIPOS_BY_TIPO = { 'BOMBA': [], 'REDUCTOR': [] };
     EQUIPOS.forEach(eq => {
       const tipo = (DATA[eq]?.meta?.tipo || '').toString().toUpperCase();
@@ -208,13 +198,11 @@
       });
     }
 
-    // Eventos
     rBomba.addEventListener('change', renderOptions);
     rReductor.addEventListener('change', renderOptions);
     filtro.addEventListener('input', renderOptions);
     sel.addEventListener('change', ()=>renderEquipo(sel.value));
 
-    // Inicializar: si hay bombas usar bombas, sino reductores
     if (EQUIPOS_BY_TIPO.BOMBA.length) rBomba.checked = true;
     else rReductor.checked = true;
     renderOptions();
