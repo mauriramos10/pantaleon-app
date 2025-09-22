@@ -20,10 +20,10 @@
       box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
     }
     header img {
-      height: 50px;
+      height: 120px; /* Logo más grande */
     }
     .titulo {
-      font-size: 22px;
+      font-size: 26px;
       font-weight: bold;
       color: #f26a21;
     }
@@ -31,25 +31,24 @@
       text-align: right;
       font-size: 14px;
     }
-    .editable {
-      border: 1px solid #ccc;
-      padding: 3px 6px;
-      border-radius: 5px;
+    #responsable {
       min-width: 150px;
       display: inline-block;
     }
     .btn {
       margin-top: 6px;
-      padding: 5px 10px;
+      padding: 7px 14px;
       background: #f26a21;
       border: none;
       border-radius: 6px;
       color: white;
-      font-size: 12px;
+      font-size: 14px;
       cursor: pointer;
+      transition: all 0.2s ease-in-out;
     }
     .btn:hover {
       background: #c44f11;
+      transform: scale(1.05); /* efecto agrandar */
     }
   </style>
 </head>
@@ -66,7 +65,7 @@
       <div id="fecha-hora"></div>
       <div>
         Responsable: 
-        <span id="responsable" class="editable" contenteditable="true">Ingrese nombre...</span>
+        <span id="responsable"></span>
       </div>
       <button class="btn" onclick="cambiarResponsable()">Cambiar Responsable</button>
     </div>
