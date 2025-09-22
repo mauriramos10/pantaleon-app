@@ -13,7 +13,7 @@
     }
     .header {
       display: grid;
-      grid-template-columns: auto 1fr auto; /* evita que se encanche */
+      grid-template-columns: auto 1fr auto;
       align-items: center;
       background: white;
       padding: 15px 30px;
@@ -54,9 +54,9 @@
 </head>
 <body>
   <header class="header">
-    <!-- Logo incrustado en base64 -->
+    <!-- Logo como archivo externo -->
     <div class="logo">
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAABlBMVEX///8AAABVwtN+..." alt="Pantaleon Logo">
+      <img src="./logo.png" alt="Pantaleon Logo">
     </div>
 
     <!-- Título -->
@@ -73,7 +73,6 @@
   </header>
 
   <script>
-    // Actualizar fecha y hora
     function actualizarFechaHora() {
       const ahora = new Date();
       const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second:'2-digit' };
@@ -82,7 +81,6 @@
     setInterval(actualizarFechaHora, 1000);
     actualizarFechaHora();
 
-    // Cambiar responsable
     function cambiarResponsable() {
       const nuevo = prompt("Ingrese el nuevo responsable:");
       if (nuevo) {
@@ -91,7 +89,6 @@
       }
     }
 
-    // Cargar responsable almacenado
     window.onload = () => {
       const guardado = localStorage.getItem("responsable");
       if (guardado) {
