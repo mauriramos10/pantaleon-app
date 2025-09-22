@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Encabezado Pantaleon</title>
+  <title>Pantaleon · Búsqueda de Equipos</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,13 +21,11 @@
       gap: 20px;
     }
     .logo img {
-      height: 160px; /* Logo más grande */
-      max-width: 100%;
-      object-fit: contain;
+      height: 120px;
     }
     .area {
       text-align: center;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: bold;
       color: #f26a21;
     }
@@ -50,36 +48,103 @@
       background: #c44f11;
       transform: scale(1.05);
     }
+    .search-box {
+      margin: 20px auto;
+      max-width: 600px;
+      text-align: center;
+    }
+    .search-box input {
+      width: 45%;
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #f26a21;
+      color: white;
+    }
   </style>
 </head>
 <body>
   <header class="header">
-    <!-- Logo como archivo externo -->
     <div class="logo">
-      <img src="./logo.png" alt="Pantaleon Logo">
+      <img src="logo.png" alt="Pantaleon Logo">
     </div>
-
-    <!-- Título -->
     <div class="area">EXTRACCIÓN DE JUGO</div>
-
-    <!-- Fecha, Hora y Responsable -->
     <div class="meta">
       <div id="fecha-hora"></div>
-      <div>
-        Responsable: <strong id="responsable"></strong>
-      </div>
+      <div>Responsable: <strong id="responsable"></strong></div>
       <button class="btn" onclick="cambiarResponsable()">Cambiar Responsable</button>
     </div>
   </header>
 
+  <div class="search-box">
+    <input type="text" id="buscarSAP" placeholder="Buscar por Código SAP">
+    <input type="text" id="buscarNombre" placeholder="Buscar por Nombre de Equipo">
+  </div>
+
+  <table id="tablaResultados">
+    <thead>
+      <tr>
+        <th>Ubicación Técnica</th>
+        <th>Código SAP</th>
+        <th>Nombre del Equipo</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
+    async function cargarDatos() {
+      const resp = await fetch('data.json');
+      const datos = await resp.json();
+      return datos;
+    }
+
+    function mostrarResultados(datos) {
+      const tbody = document.querySelector("#tablaResultados tbody");
+      tbody.innerHTML = "";
+      datos.forEach(item => {
+        const fila = `<tr>
+          <td>${item["UBICACIÓN TECNICA"] || ""}</td>
+          <td>${item["Codigo SAP"] || ""}</td>
+          <td>${item["NOMBRE DEL EQUIPO"] || ""}</td>
+        </tr>`;
+        tbody.innerHTML += fila;
+      });
+    }
+
+    function filtrar(datos) {
+      const sap = document.getElementById("buscarSAP").value.toLowerCase();
+      const nombre = document.getElementById("buscarNombre").value.toLowerCase();
+      const filtrados = datos.filter(item => 
+        (sap === "" || (item["Codigo SAP"]+"" ).toLowerCase().includes(sap)) &&
+        (nombre === "" || (item["NOMBRE DEL EQUIPO"] || "").toLowerCase().includes(nombre))
+      );
+      mostrarResultados(filtrados);
+    }
+
     function actualizarFechaHora() {
       const ahora = new Date();
       const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second:'2-digit' };
       document.getElementById("fecha-hora").innerText = ahora.toLocaleDateString("es-ES", opciones);
     }
-    setInterval(actualizarFechaHora, 1000);
-    actualizarFechaHora();
 
     function cambiarResponsable() {
       const nuevo = prompt("Ingrese el nuevo responsable:");
@@ -89,11 +154,17 @@
       }
     }
 
-    window.onload = () => {
+    window.onload = async () => {
+      const datos = await cargarDatos();
+      mostrarResultados(datos);
+      document.getElementById("buscarSAP").addEventListener("input", () => filtrar(datos));
+      document.getElementById("buscarNombre").addEventListener("input", () => filtrar(datos));
       const guardado = localStorage.getItem("responsable");
       if (guardado) {
         document.getElementById("responsable").innerText = guardado;
       }
+      setInterval(actualizarFechaHora, 1000);
+      actualizarFechaHora();
     };
   </script>
 </body>
