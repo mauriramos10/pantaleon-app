@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pantaleon · Mantenimiento</title>
+  <title>Encabezado Pantaleon</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,29 +11,26 @@
       background: #f5f7f6;
       color: #333;
     }
-    header {
-      display: flex;
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
       background: white;
       padding: 15px 30px;
       box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
     }
-    header img {
-      height: 120px; /* Logo más grande */
+    .logo img {
+      height: 120px;
     }
-    .titulo {
+    .area {
+      text-align: center;
       font-size: 26px;
       font-weight: bold;
       color: #f26a21;
     }
-    .info {
+    .meta {
       text-align: right;
       font-size: 14px;
-    }
-    #responsable {
-      min-width: 150px;
-      display: inline-block;
     }
     .btn {
       margin-top: 6px;
@@ -48,24 +45,25 @@
     }
     .btn:hover {
       background: #c44f11;
-      transform: scale(1.05); /* efecto agrandar */
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <header>
+  <header class="header">
     <!-- Logo -->
-    <img src="./logo.png" alt="Pantaleon Logo">
+    <div class="logo">
+      <img src="./logo.png" alt="Pantaleon Logo">
+    </div>
 
     <!-- Título -->
-    <div class="titulo">EXTRACCIÓN DE JUGO</div>
+    <div class="area">EXTRACCIÓN DE JUGO</div>
 
     <!-- Fecha, Hora y Responsable -->
-    <div class="info">
+    <div class="meta">
       <div id="fecha-hora"></div>
       <div>
-        Responsable: 
-        <span id="responsable"></span>
+        Responsable: <strong id="responsable"></strong>
       </div>
       <button class="btn" onclick="cambiarResponsable()">Cambiar Responsable</button>
     </div>
@@ -86,8 +84,17 @@
       const nuevo = prompt("Ingrese el nuevo responsable:");
       if (nuevo) {
         document.getElementById("responsable").innerText = nuevo;
+        localStorage.setItem("responsable", nuevo);
       }
     }
+
+    // Cargar responsable almacenado
+    window.onload = () => {
+      const guardado = localStorage.getItem("responsable");
+      if (guardado) {
+        document.getElementById("responsable").innerText = guardado;
+      }
+    };
   </script>
 </body>
 </html>
