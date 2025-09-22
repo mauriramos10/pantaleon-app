@@ -13,18 +13,21 @@
     }
     .header {
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: auto 1fr auto; /* evita que se encanche */
       align-items: center;
       background: white;
       padding: 15px 30px;
       box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+      gap: 20px;
     }
     .logo img {
-      height: 120px;
+      height: 160px; /* Logo más grande */
+      max-width: 100%;
+      object-fit: contain;
     }
     .area {
       text-align: center;
-      font-size: 26px;
+      font-size: 28px;
       font-weight: bold;
       color: #f26a21;
     }
