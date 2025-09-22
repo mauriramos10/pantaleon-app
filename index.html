@@ -106,8 +106,7 @@
       const contenedor = document.getElementById("resultados");
       contenedor.innerHTML = "";
       if (datos.length === 0) {
-        contenedor.innerHTML = "<p>No se encontraron resultados</p>";
-        return;
+        return; // 🔹 Nada al inicio o si no hay coincidencias
       }
       datos.forEach(item => {
         const div = document.createElement("div");
@@ -124,6 +123,10 @@
     function filtrar() {
       const sap = document.getElementById("buscarSAP").value.toLowerCase();
       const nombre = document.getElementById("buscarNombre").value.toLowerCase();
+      if (sap === "" && nombre === "") {
+        document.getElementById("resultados").innerHTML = ""; // 🔹 vacío si no hay búsqueda
+        return;
+      }
       const filtrados = datosEquipos.filter(item => 
         (sap === "" || (item["Codigo SAP"]+"" ).toLowerCase().includes(sap)) &&
         (nombre === "" || (item["NOMBRE DEL EQUIPO"] || "").toLowerCase().includes(nombre))
@@ -146,7 +149,7 @@
     }
 
     window.onload = () => {
-      mostrarResultados(datosEquipos);
+      // 🔹 Solo mostrar resultados al escribir
       document.getElementById("buscarSAP").addEventListener("input", filtrar);
       document.getElementById("buscarNombre").addEventListener("input", filtrar);
       const guardado = localStorage.getItem("responsable");
