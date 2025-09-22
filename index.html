@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantaleon · Mantenimiento</title>
+  <style>
+    body {font-family: Arial, sans-serif; margin: 0; background: #f5f7f6; color: #333;}
+    header {display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px 30px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1);}
+    header img {height: 50px;}
+    .titulo {font-size: 22px; font-weight: bold; color: #f26a21;}
+    .info {text-align: right; font-size: 14px;}
+    .editable {border: 1px solid #ccc; padding: 3px 6px; border-radius: 5px; min-width: 150px; display: inline-block;}
+  </style>
+</head>
+<body>
+  <header>
+    <!-- Logo incrustado en Base64 -->
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAABlBMVEX///8AAABVwtN+..." alt="Pantaleon Logo">
+    <div class="titulo">EXTRACCIÓN DE JUGO</div>
+    <div class="info">
+      <div id="fecha-hora"></div>
+      <div>Responsable: <span class="editable" contenteditable="true">Ingrese nombre...</span></div>
+    </div>
+  </header>
+  <script>
+    function actualizarFechaHora() {
+      const ahora = new Date();
+      const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second:'2-digit' };
+      document.getElementById("fecha-hora").innerText = ahora.toLocaleDateString("es-ES", opciones);
+    }
+    setInterval(actualizarFechaHora, 1000);
+    actualizarFechaHora();
+  </script>
+</body>
+</html>
