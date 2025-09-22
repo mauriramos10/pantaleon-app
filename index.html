@@ -5,25 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pantaleon · Mantenimiento</title>
   <style>
-    body {font-family: Arial, sans-serif; margin: 0; background: #f5f7f6; color: #333;}
-    header {display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px 30px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1);}
-    header img {height: 50px;}
-    .titulo {font-size: 22px; font-weight: bold; color: #f26a21;}
-    .info {text-align: right; font-size: 14px;}
-    .editable {border: 1px solid #ccc; padding: 3px 6px; border-radius: 5px; min-width: 150px; display: inline-block;}
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f7f6;
+      color: #333;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      padding: 15px 30px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+    header img {
+      height: 50px;
+    }
+    .titulo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #f26a21;
+    }
+    .info {
+      text-align: right;
+      font-size: 14px;
+    }
+    .editable {
+      border: 1px solid #ccc;
+      padding: 3px 6px;
+      border-radius: 5px;
+      min-width: 150px;
+      display: inline-block;
+    }
+    .btn {
+      margin-top: 6px;
+      padding: 5px 10px;
+      background: #f26a21;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #c44f11;
+    }
   </style>
 </head>
 <body>
   <header>
-    <!-- Logo incrustado en Base64 -->
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAABlBMVEX///8AAABVwtN+..." alt="Pantaleon Logo">
+    <!-- Logo -->
+    <img src="logo.png" alt="Pantaleon Logo">
+
+    <!-- Título -->
     <div class="titulo">EXTRACCIÓN DE JUGO</div>
+
+    <!-- Fecha, Hora y Responsable -->
     <div class="info">
       <div id="fecha-hora"></div>
-      <div>Responsable: <span class="editable" contenteditable="true">Ingrese nombre...</span></div>
+      <div>
+        Responsable: 
+        <span id="responsable" class="editable" contenteditable="true">Ingrese nombre...</span>
+      </div>
+      <button class="btn" onclick="cambiarResponsable()">Cambiar Responsable</button>
     </div>
   </header>
+
   <script>
+    // Actualizar fecha y hora
     function actualizarFechaHora() {
       const ahora = new Date();
       const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second:'2-digit' };
@@ -31,6 +81,14 @@
     }
     setInterval(actualizarFechaHora, 1000);
     actualizarFechaHora();
+
+    // Cambiar responsable
+    function cambiarResponsable() {
+      const nuevo = prompt("Ingrese el nuevo responsable:");
+      if (nuevo) {
+        document.getElementById("responsable").innerText = nuevo;
+      }
+    }
   </script>
 </body>
 </html>
