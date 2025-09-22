@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pantaleon · Búsqueda de Equipos</title>
+  <title>Pantaleon · Búsqueda de Equipos con QR</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -34,7 +34,7 @@
       font-size: 14px;
     }
     .btn {
-      margin-top: 6px;
+      margin-left: 5px;
       padding: 7px 14px;
       background: #f26a21;
       border: none;
@@ -76,6 +76,11 @@
       display: block;
       color: #f26a21;
     }
+    #lectorQR {
+      margin: 20px auto;
+      width: 300px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -93,10 +98,15 @@
 
   <div class="search-box">
     <input type="text" id="buscarSAP" placeholder="Buscar por Código SAP">
+    <button class="btn" onclick="abrirQR()">📷 Escanear QR</button>
     <input type="text" id="buscarNombre" placeholder="Buscar por Nombre de Equipo">
   </div>
 
+  <div id="lectorQR"></div>
   <div class="resultados" id="resultados"></div>
+
+  <!-- Librería para QR -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <script>
     // Datos embebidos desde Excel
@@ -106,7 +116,7 @@
       const contenedor = document.getElementById("resultados");
       contenedor.innerHTML = "";
       if (datos.length === 0) {
-        return; // 🔹 Nada al inicio o si no hay coincidencias
+        return;
       }
       datos.forEach(item => {
         const div = document.createElement("div");
@@ -124,7 +134,7 @@
       const sap = document.getElementById("buscarSAP").value.toLowerCase();
       const nombre = document.getElementById("buscarNombre").value.toLowerCase();
       if (sap === "" && nombre === "") {
-        document.getElementById("resultados").innerHTML = ""; // 🔹 vacío si no hay búsqueda
+        document.getElementById("resultados").innerHTML = "";
         return;
       }
       const filtrados = datosEquipos.filter(item => 
@@ -148,8 +158,26 @@
       }
     }
 
+    // Lector QR
+    function abrirQR() {
+      document.getElementById("lectorQR").style.display = "block";
+      const html5QrCode = new Html5Qrcode("lectorQR");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        qrCodeMessage => {
+          document.getElementById("buscarSAP").value = qrCodeMessage;
+          filtrar();
+          html5QrCode.stop();
+          document.getElementById("lectorQR").style.display = "none";
+        },
+        errorMessage => {}
+      ).catch(err => {
+        console.error("Error al iniciar QR: ", err);
+      });
+    }
+
     window.onload = () => {
-      // 🔹 Solo mostrar resultados al escribir
       document.getElementById("buscarSAP").addEventListener("input", filtrar);
       document.getElementById("buscarNombre").addEventListener("input", filtrar);
       const guardado = localStorage.getItem("responsable");
