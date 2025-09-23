@@ -63,11 +63,11 @@
     }
     .resultados {
       margin: 20px;
-      max-width: 600px;
+      max-width: 900px;
     }
     .item {
       background: white;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
@@ -75,12 +75,20 @@
     .item strong {
       color: #f26a21;
     }
-    .componentes {
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 10px;
-      padding-left: 15px;
     }
-    .componentes li {
-      margin-bottom: 5px;
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #f26a21;
+      color: white;
     }
     #lectorQR {
       margin: 20px auto;
@@ -138,22 +146,34 @@
         const relacionados = datosBombas.filter(c => (c["CODIGO SAP"]+"").trim() === sap);
 
         if (relacionados.length > 0) {
-          const lista = document.createElement("ul");
-          lista.classList.add("componentes");
+          let tabla = `<table>
+            <thead>
+              <tr>
+                <th>Componente</th>
+                <th>Características</th>
+                <th>Marca</th>
+                <th>Código Repuesto</th>
+                <th>Descripción</th>
+                <th>Posición</th>
+                <th>Año</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
           relacionados.forEach(c => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-              <strong>Componente:</strong> ${c["COMPONENTE"] || ""} | 
-              <strong>Características:</strong> ${c["CARACTERISITICAS"] || ""} | 
-              <strong>Marca:</strong> ${c["MARCA"] || ""} | 
-              <strong>Código Repuesto:</strong> ${c["CODIGO DE REPUESTO"] || ""} | 
-              <strong>Descripción:</strong> ${c["DESCRIPCIÓN"] || ""} | 
-              <strong>Posición:</strong> ${c["POSICION"] || ""} | 
-              <strong>Año:</strong> ${c["AÑO"] || ""}
-            `;
-            lista.appendChild(li);
+            tabla += `<tr>
+              <td>${c["COMPONENTE"] || ""}</td>
+              <td>${c["CARACTERISITICAS"] || ""}</td>
+              <td>${c["MARCA"] || ""}</td>
+              <td>${c["CODIGO DE REPUESTO"] || ""}</td>
+              <td>${c["DESCRIPCIÓN"] || ""}</td>
+              <td>${c["POSICION"] || ""}</td>
+              <td>${c["AÑO"] || ""}</td>
+            </tr>`;
           });
-          div.appendChild(lista);
+
+          tabla += `</tbody></table>`;
+          div.innerHTML += tabla;
         }
 
         contenedor.appendChild(div);
