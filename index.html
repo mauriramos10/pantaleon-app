@@ -81,8 +81,9 @@
           <div>
             <label>Equipo</label>
             <input id="fEquipoTxt" list="equiposList" placeholder="Escribe código o nombre (ej: 10010416)" />
-            <datalist id="equiposList"></datalist>
-            <input type="hidden" id="fEquipo" />
+<datalist id="equiposList"></datalist>
+<input type="hidden" id="fEquipo" />
+
           </div>
           <div>
             <label>Tipo / título corto</label>
@@ -586,10 +587,7 @@ const panes = {
 };
 
 // Crear falla
-const fEquipo = document.getElementById("fEquipo");          // hidden (equipoId)
-const fEquipoTxt = document.getElementById("fEquipoTxt");    // input visible
-const equiposList = document.getElementById("equiposList");  // datalist
-
+const fEquipo = document.getElementById("fEquipo");
 const fTitulo = document.getElementById("fTitulo");
 const fFecha = document.getElementById("fFecha");
 const fUmbral = document.getElementById("fUmbral");
@@ -765,79 +763,22 @@ function equipoExistsByCodigo(codigo) {
 }
 
 /* ===========================
-   BUSCADOR DE EQUIPO (datalist)
-   =========================== */
-
-function resolveEquipoIdFromText(txt) {
-  const v = (txt || "").trim().toLowerCase();
-  if (!v) return null;
-
-  // 1) Match exacto por "codigo • nombre"
-  const exact = state.equipos.find(e => {
-    const label = `${(e.codigo||"").trim()} • ${e.nombre||""}`.trim().toLowerCase();
-    return label === v;
-  });
-  if (exact) return exact.id;
-
-  // 2) Match por código exacto
-  const byCode = state.equipos.find(e => (e.codigo||"").trim().toLowerCase() === v);
-  if (byCode) return byCode.id;
-
-  // 3) Match parcial por código o nombre
-  const partial = state.equipos.find(e => {
-    const codigo = (e.codigo||"").trim().toLowerCase();
-    const nombre = (e.nombre||"").trim().toLowerCase();
-    return codigo.includes(v) || nombre.includes(v);
-  });
-  if (partial) return partial.id;
-
-  return null;
-}
-
-fEquipoTxt.addEventListener("input", () => {
-  const id = resolveEquipoIdFromText(fEquipoTxt.value);
-  fEquipo.value = id || "";
-});
-
-/* ===========================
    Render
    =========================== */
 
 function renderSelects() {
-  // 1) datalist para registrar falla
-  equiposList.innerHTML = state.equipos.map(e => {
-    const txt = `${(e.codigo||"").trim()} • ${e.nombre||""}`.trim();
-    return `<option value="${escapeHtml(txt)}"></option>`;
-  }).join("");
-
-  // 2) select para editar falla (dialog)
   const opts = state.equipos.map(e => {
     const txt = `${(e.codigo||"").trim()} • ${e.nombre||""}`.trim();
     return `<option value="${e.id}">${escapeHtml(txt)}</option>`;
   }).join("");
-  dEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
+  fEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
+  dEquipo.innerHTML = fEquipo.innerHTML;
 
-  // 3) select filtro
   const current = qEquipo.value;
   qEquipo.innerHTML = `<option value="todos">Todos</option>` + (opts || "");
   if ([...qEquipo.options].some(o => o.value === current)) qEquipo.value = current;
 
-  // 4) defaults
-  if (state.equipos[0]) {
-    if (!fEquipo.value) fEquipo.value = state.equipos[0].id;
-
-    // si el texto está vacío, poner el primero
-    if (!fEquipoTxt.value.trim()) {
-      fEquipoTxt.value = `${(state.equipos[0].codigo||"").trim()} • ${state.equipos[0].nombre||""}`.trim();
-    }
-
-    // sincronizar hidden por si acaso
-    const idNow = resolveEquipoIdFromText(fEquipoTxt.value);
-    if (idNow) fEquipo.value = idNow;
-  } else {
-    fEquipo.value = "";
-    fEquipoTxt.value = "";
-  }
+  if (!fEquipo.value && state.equipos[0]) fEquipo.value = state.equipos[0].id;
 }
 
 function renderEquipos() {
@@ -1030,18 +971,7 @@ btnImportEquiposPegado.addEventListener("click", ()=>{
 
 btnCrearFalla.addEventListener("click", ()=>{
   if (!state.equipos.length) return showToast("Primero crea un equipo", "Ve a la pestaña Equipos.", "bad");
-
-  // asegurar que el hidden esté resuelto con el texto actual
-  if (!fEquipo.value) {
-    const id = resolveEquipoIdFromText(fEquipoTxt.value);
-    fEquipo.value = id || "";
-  }
-
   const equipoId = fEquipo.value;
-  if (!equipoId) {
-    return showToast("Equipo no encontrado", "Escribe el código y selecciona una sugerencia de la lista.", "bad");
-  }
-
   const titulo = fTitulo.value.trim();
   const dt = parseDateTimeLocal(fFecha.value);
   if (!dt) return showToast("Fecha/hora inválida", "Revisa la fecha/hora de la falla.", "bad");
