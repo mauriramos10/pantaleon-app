@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="es">
 <head>
@@ -54,6 +55,35 @@
     .dlg h3 { margin: 0 0 10px; font-size: 15px; }
     .hr { height:1px; background: rgba(34,48,79,.7); margin: 10px 0; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; }
+
+    /* Autocomplete propio (móvil friendly) */
+    .acWrap { position: relative; }
+    .acList {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 6px);
+      z-index: 999;
+      display: none;
+      max-height: 260px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(34,48,79,.9);
+      background: rgba(2,6,23,.95);
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+    }
+    .acItem {
+      width: 100%;
+      text-align: left;
+      padding: 10px 10px;
+      border: none;
+      border-bottom: 1px solid rgba(34,48,79,.5);
+      background: transparent;
+      color: #e5e7eb;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .acItem:hover { background: rgba(99,102,241,.15); }
+    .acItem .mut { display:block; font-weight: 500; color:#94a3b8; font-size: 12px; margin-top:2px; }
   </style>
 </head>
 <body>
@@ -77,31 +107,40 @@
           <span>Registrar falla</span>
           <span class="muted">Fecha/hora local (Guatemala)</span>
         </h2>
+
         <div class="grid cols2">
           <div>
             <label>Equipo</label>
-            <input id="fEquipoTxt" list="equiposList" placeholder="Escribe código o nombre (ej: 10010416)" />
-<datalist id="equiposList"></datalist>
-<input type="hidden" id="fEquipo" />
+
+            <div class="acWrap">
+              <input id="fEquipoTxt" placeholder="Escribe código o nombre (ej: 10010416)" autocomplete="off" />
+              <input type="hidden" id="fEquipo" />
+              <div id="fEquipoSug" class="acList"></div>
+            </div>
 
           </div>
+
           <div>
             <label>Tipo / título corto</label>
             <input id="fTitulo" placeholder="Ej: Banda se desliza / Motor no arranca" />
           </div>
+
           <div>
             <label>Fecha y hora de la falla</label>
             <input id="fFecha" type="datetime-local" />
           </div>
+
           <div>
             <label>Umbral aviso (horas) (opcional)</label>
             <input id="fUmbral" type="number" min="0" step="0.5" placeholder="Vacío = usar configuración global" />
           </div>
         </div>
+
         <div style="margin-top:10px">
           <label>Descripción / detalle</label>
           <textarea id="fDetalle" placeholder="Describe lo ocurrido, síntomas, condiciones, etc."></textarea>
         </div>
+
         <div class="btns" style="margin-top:10px">
           <button class="primary" id="btnCrearFalla">Guardar falla</button>
           <button id="btnAutofecha">Poner fecha/hora actual</button>
@@ -587,7 +626,10 @@ const panes = {
 };
 
 // Crear falla
-const fEquipo = document.getElementById("fEquipo");
+const fEquipo = document.getElementById("fEquipo");          // hidden (equipoId)
+const fEquipoTxt = document.getElementById("fEquipoTxt");    // input visible
+const fEquipoSug = document.getElementById("fEquipoSug");    // dropdown
+
 const fTitulo = document.getElementById("fTitulo");
 const fFecha = document.getElementById("fFecha");
 const fUmbral = document.getElementById("fUmbral");
@@ -763,6 +805,82 @@ function equipoExistsByCodigo(codigo) {
 }
 
 /* ===========================
+   Autocomplete propio (móvil)
+   =========================== */
+
+function pickEquipo(eq) {
+  fEquipo.value = eq.id;
+  fEquipoTxt.value = `${(eq.codigo||"").trim()} • ${eq.nombre||""}`.trim();
+  fEquipoSug.style.display = "none";
+  fEquipoSug.innerHTML = "";
+}
+
+function buildEquipoSuggestions(q) {
+  const v = (q || "").trim().toLowerCase();
+  if (!v) return [];
+
+  const matches = state.equipos.filter(e => {
+    const codigo = (e.codigo||"").trim().toLowerCase();
+    const nombre = (e.nombre||"").trim().toLowerCase();
+    return codigo.includes(v) || nombre.includes(v);
+  });
+
+  matches.sort((a,b)=>{
+    const ac = ((a.codigo||"").trim().toLowerCase().startsWith(v)) ? 0 : 1;
+    const bc = ((b.codigo||"").trim().toLowerCase().startsWith(v)) ? 0 : 1;
+    if (ac !== bc) return ac - bc;
+    return ((a.codigo||"") > (b.codigo||"")) ? 1 : -1;
+  });
+
+  return matches.slice(0, 12);
+}
+
+function renderEquipoSuggestions(list) {
+  if (!list.length) {
+    fEquipoSug.style.display = "none";
+    fEquipoSug.innerHTML = "";
+    return;
+  }
+
+  fEquipoSug.innerHTML = list.map(e => {
+    const code = (e.codigo||"").trim();
+    const name = (e.nombre||"").trim();
+    return `
+      <button type="button" class="acItem" data-eqid="${e.id}">
+        ${escapeHtml(code)} • ${escapeHtml(name)}
+        <span class="mut">${escapeHtml(e.area || "")}</span>
+      </button>
+    `;
+  }).join("");
+
+  fEquipoSug.style.display = "block";
+}
+
+fEquipoTxt.addEventListener("input", () => {
+  fEquipo.value = ""; // invalida selección previa hasta seleccionar
+  const list = buildEquipoSuggestions(fEquipoTxt.value);
+  renderEquipoSuggestions(list);
+});
+
+fEquipoTxt.addEventListener("focus", () => {
+  const list = buildEquipoSuggestions(fEquipoTxt.value);
+  renderEquipoSuggestions(list);
+});
+
+fEquipoSug.addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button[data-eqid]");
+  if (!btn) return;
+  const id = btn.dataset.eqid;
+  const eq = state.equipos.find(x => x.id === id);
+  if (eq) pickEquipo(eq);
+});
+
+document.addEventListener("click", (ev) => {
+  const inside = ev.target.closest(".acWrap");
+  if (!inside) fEquipoSug.style.display = "none";
+});
+
+/* ===========================
    Render
    =========================== */
 
@@ -771,14 +889,16 @@ function renderSelects() {
     const txt = `${(e.codigo||"").trim()} • ${e.nombre||""}`.trim();
     return `<option value="${e.id}">${escapeHtml(txt)}</option>`;
   }).join("");
-  fEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
-  dEquipo.innerHTML = fEquipo.innerHTML;
+
+  dEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
 
   const current = qEquipo.value;
   qEquipo.innerHTML = `<option value="todos">Todos</option>` + (opts || "");
   if ([...qEquipo.options].some(o => o.value === current)) qEquipo.value = current;
 
-  if (!fEquipo.value && state.equipos[0]) fEquipo.value = state.equipos[0].id;
+  if (state.equipos[0] && !fEquipoTxt.value.trim()) {
+    pickEquipo(state.equipos[0]);
+  }
 }
 
 function renderEquipos() {
@@ -971,7 +1091,12 @@ btnImportEquiposPegado.addEventListener("click", ()=>{
 
 btnCrearFalla.addEventListener("click", ()=>{
   if (!state.equipos.length) return showToast("Primero crea un equipo", "Ve a la pestaña Equipos.", "bad");
+
   const equipoId = fEquipo.value;
+  if (!equipoId) {
+    return showToast("Equipo no seleccionado", "Escribe el código y selecciona una coincidencia.", "bad");
+  }
+
   const titulo = fTitulo.value.trim();
   const dt = parseDateTimeLocal(fFecha.value);
   if (!dt) return showToast("Fecha/hora inválida", "Revisa la fecha/hora de la falla.", "bad");
@@ -1311,3 +1436,4 @@ renderAll();
 </script>
 </body>
 </html>
+```
