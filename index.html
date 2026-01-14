@@ -186,32 +186,52 @@
   <!-- EQUIPOS -->
   <section id="tab-equipos" class="tabpane" style="display:none">
     <div class="row two">
-      <div class="card">
-        <h2>Registrar equipo</h2>
-        <div class="grid cols2">
-          <div>
-            <label>Nombre del equipo</label>
-            <input id="eNombre" placeholder="Ej: Tractor 12 / Bomba #3 / Esparcidor 5" />
+      <div>
+        <div class="card">
+          <h2>Registrar equipo</h2>
+          <div class="grid cols2">
+            <div>
+              <label>Código de equipo</label>
+              <input id="eCodigo" placeholder="Ej: 10010356" />
+            </div>
+            <div>
+              <label>Denominación</label>
+              <input id="eNombre" placeholder="Ej: TRACTOR JOHN DEERE 8245R" />
+            </div>
+            <div>
+              <label>Área / Frente</label>
+              <input id="eArea" placeholder="Ej: Fertilización / Escarificado / Taller" />
+            </div>
+            <div>
+              <label>Marca / Modelo</label>
+              <input id="eModelo" placeholder="Ej: John Deere 6110 / CASE PUMA 225" />
+            </div>
+            <div>
+              <label>Serie / Placa</label>
+              <input id="eSerie" placeholder="Opcional" />
+            </div>
           </div>
-          <div>
-            <label>Área / Frente</label>
-            <input id="eArea" placeholder="Ej: Fertilización / Escarificado / Taller" />
+          <div style="margin-top:10px">
+            <label>Notas del equipo</label>
+            <textarea id="eNotas" placeholder="Detalles importantes del equipo (capacidad, ubicación, etc.)"></textarea>
           </div>
-          <div>
-            <label>Marca / Modelo</label>
-            <input id="eModelo" placeholder="Ej: John Deere 6110 / Warman 6x4" />
-          </div>
-          <div>
-            <label>Serie / Placa</label>
-            <input id="eSerie" placeholder="Opcional" />
+          <div class="btns" style="margin-top:10px">
+            <button class="primary" id="btnCrearEquipo">Guardar equipo</button>
           </div>
         </div>
-        <div style="margin-top:10px">
-          <label>Notas del equipo</label>
-          <textarea id="eNotas" placeholder="Detalles importantes del equipo (capacidad, ubicación, etc.)"></textarea>
-        </div>
-        <div class="btns" style="margin-top:10px">
-          <button class="primary" id="btnCrearEquipo">Guardar equipo</button>
+
+        <div class="card" style="margin-top:12px">
+          <h2>Importar equipos pegando lista</h2>
+          <div class="muted">
+            Pega líneas como: <span class="mono">10010356[TAB]TRACTOR AGRICOLA JOHN DEERE D130</span> (también acepta separador por espacios múltiples).
+          </div>
+          <div style="margin-top:10px">
+            <label>Lista (una línea por equipo)</label>
+            <textarea id="eImportText" placeholder="Código[TAB]Denominación"></textarea>
+          </div>
+          <div class="btns" style="margin-top:10px">
+            <button class="primary" id="btnImportEquiposPegado">Importar/Agregar</button>
+          </div>
         </div>
       </div>
 
@@ -223,7 +243,8 @@
           <table>
             <thead>
               <tr>
-                <th>Equipo</th>
+                <th>Código</th>
+                <th>Denominación</th>
                 <th>Área</th>
                 <th>Modelo</th>
                 <th class="right">Acciones</th>
@@ -349,7 +370,11 @@
       <h3>Editar equipo</h3>
       <div class="grid cols2">
         <div>
-          <label>Nombre</label>
+          <label>Código</label>
+          <input id="deCodigo" />
+        </div>
+        <div>
+          <label>Denominación</label>
           <input id="deNombre" />
         </div>
         <div>
@@ -387,9 +412,102 @@
 
 const STORE_KEY = "controlFallas.v1";
 
+const PRELOAD_EQUIPOS = [
+  { codigo:"10010356", denominacion:"TRACTOR AGRICOLA JOHN DEERE D130" },
+  { codigo:"10010357", denominacion:"TRACTOR AGRICOLA JOHN DEERE D130" },
+  { codigo:"10010125", denominacion:"TRACTOR AGRICOLA JOHN DEERE 5615" },
+  { codigo:"10130021", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130022", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130025", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130030", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130031", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130032", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130033", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130034", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130035", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130241", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130419", denominacion:"ESCARIFICADOR DE  4 CINCELES" },
+  { codigo:"11130006", denominacion:"ESCARIFICADOR" },
+  { codigo:"11130007", denominacion:"ESCARIFICADOR" },
+  { codigo:"10130439", denominacion:"SUBSOLADOR" },
+  { codigo:"10130440", denominacion:"SUBSOLADOR" },
+  { codigo:"10130443", denominacion:"SUBSOLADOR" },
+  { codigo:"10130051", denominacion:"FERTILIZADORA ABONO GRANULADO" },
+  { codigo:"10130027", denominacion:"ESCARIFICADOR" },
+  { codigo:"10010416", denominacion:"TRACTOR JOHN DEERE 8245R" },
+  { codigo:"10010508", denominacion:"TRACTOR JOHN DEERE 7210R" },
+  { codigo:"10010506", denominacion:"TRACTOR JOHN DEERE 7210R" },
+  { codigo:"10010415", denominacion:"TRACTOR JOHN DEERE 8245R" },
+  { codigo:"10010511", denominacion:"TRACTOR JOHN DEERE 7210R" },
+  { codigo:"10010429", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
+  { codigo:"10010430", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
+  { codigo:"10010434", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
+  { codigo:"10010447", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
+  { codigo:"10010503", denominacion:"TRACTOR JOHN DEERE 7210R" },
+  { codigo:"10130350", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130351", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130352", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130353", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130405", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
+  { codigo:"10130452", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
+  { codigo:"10130430", denominacion:"TANQUE ABONO LIQUIDO DE  ALTO VOLUMEN" },
+  { codigo:"10130425", denominacion:"TANQUE ABONO LIQUIDO DE  ALTO VOLUMEN" },
+  { codigo:"10130454", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
+  { codigo:"10130085", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130082", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130081", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130083", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130084", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
+  { codigo:"10130311", denominacion:"FERTICULTIVADORA DE ABONO LIQUIDO" },
+  { codigo:"10130346", denominacion:"FERTICULTIVADORA DE ABONO LIQUIDO" },
+  { codigo:"10130471", denominacion:"COMPOSTADORA DE SUELOS" },
+  { codigo:"10130409", denominacion:"COMPOSTADORA DE SUELOS" },
+  { codigo:"10010152", denominacion:"TRACTOR AGRICOLA JOHN DEERE 7425" },
+  { codigo:"10130339", denominacion:"ENCALADORA" },
+  { codigo:"10130402", denominacion:"ENCALADORA CACHAZERA" },
+  { codigo:"10130240", denominacion:"ESCARIFICADOR..." },
+  { codigo:"10010348", denominacion:"TRACTOR AGRICOLA JOHN DEERE 8245R" },
+  { codigo:"10010687", denominacion:"TRACTOR AGRICOLA CASE FARMALL 100" },
+  { codigo:"10130067", denominacion:"FERTILIZADORA ABONO GRANULADO" },
+  { codigo:"10130466", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
+  { codigo:"10130465", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
+  { codigo:"10010465", denominacion:"TRACTOR CASE IH PUMA" },
+  { codigo:"10051856", denominacion:"CAMIÓN HINO 2023" },
+  { codigo:"10051598", denominacion:"CAMIÓN HINO 2020" },
+  { codigo:"10051704", denominacion:"CAMION HINO 5.25 TON" },
+  { codigo:"10010405", denominacion:"TRACTOR JOHN DEERE 8345R" },
+  { codigo:"10010491", denominacion:"TRACTOR AGRICOLA JOHN DEERE 7425" },
+  { codigo:"10010557", denominacion:"TRACTOR AGRICOLA CASE PUMA 210" },
+  { codigo:"10010376", denominacion:"TRACTOR JOHN DEERE 7210R" },
+  { codigo:"10010475", denominacion:"TRACTOR JOHN DEEREE 7210R" },
+  { codigo:"10010464", denominacion:"TRACTOR AGRÍCOLA CASE PUMA 210" },
+  { codigo:"10010466", denominacion:"TRACTOR CASE IH PUMA" },
+  { codigo:"10010714", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
+  { codigo:"10010713", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
+  { codigo:"10010716", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
+  { codigo:"10010715", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
+  { codigo:"10130481", denominacion:"ESCARIFICADOR DE  4 CINCELES" },
+  { codigo:"10130482", denominacion:"ESCARIFICADOR DE  4 CINCELES" },
+  { codigo:"10130073", denominacion:"FERTILIZADORA DE ABONO LIQUIDO" },
+  { codigo:"10010549", denominacion:"TRACTOR AGRICOLA CASE PUMA 210" },
+  { codigo:"10130312", denominacion:"FERTILIZADORA DE ABONO LIQUIDO" },
+  { codigo:"10010490", denominacion:"TRACTOR AGRICOLA JOHN DEERE 7425" },
+  { codigo:"11130009", denominacion:"FERTILIZADORA ABONO GRANULADO" },
+  { codigo:"10010717", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
+  { codigo:"10010718", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
+  { codigo:"10010413", denominacion:"TRACTOR JOHN DEERE 8245R" },
+  { codigo:"10010417", denominacion:"TRACTOR JOHN DEERE 8245R" },
+  { codigo:"10010374", denominacion:"TRACTOR JOHN DEERE 7210R" },
+  { codigo:"10070279", denominacion:"GONDOLA" },
+  { codigo:"10130438", denominacion:"ENCALADORA CIVEMASA" },
+  { codigo:"10130239", denominacion:"ECARFICADOR" },
+  { codigo:"10010414", denominacion:"TRACTOR JOHN DEERE 8245R" },
+  { codigo:"10130061", denominacion:"FERTILIZADORA ABONO GRANULAD" },
+  { codigo:"10010736", denominacion:"TRACTOR AGRÍCOLA 6140J" }
+];
+
 const nowLocalISO = () => {
   const d = new Date();
-  // datetime-local requiere formato sin zona: YYYY-MM-DDTHH:mm
   const pad = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
@@ -418,9 +536,15 @@ function saveState() {
 function defaultState() {
   return normalizeState({
     config: { thresholdHours: 6, repeatMinutes: 30 },
-    equipos: [
-      { id: uid("eq"), nombre: "Equipo ejemplo", area: "Área", modelo: "Modelo", serie: "", notas: "" }
-    ],
+    equipos: PRELOAD_EQUIPOS.map(x => ({
+      id: uid("eq"),
+      codigo: x.codigo,
+      nombre: x.denominacion,
+      area: "",
+      modelo: "",
+      serie: "",
+      notas: ""
+    })),
     fallas: []
   });
 }
@@ -432,7 +556,11 @@ function normalizeState(s) {
   if (typeof s.config.repeatMinutes !== "number") s.config.repeatMinutes = 30;
   s.equipos = Array.isArray(s.equipos) ? s.equipos : [];
   s.fallas = Array.isArray(s.fallas) ? s.fallas : [];
-  // Normalizar fallas
+
+  for (const e of s.equipos) {
+    if (!("codigo" in e)) e.codigo = "";
+  }
+
   for (const f of s.fallas) {
     f.comentarios = Array.isArray(f.comentarios) ? f.comentarios : [];
     if (typeof f.resuelta !== "boolean") f.resuelta = false;
@@ -479,12 +607,17 @@ const btnPermisoNotif = document.getElementById("btnPermisoNotif");
 const btnResetDemo = document.getElementById("btnResetDemo");
 
 // Equipos
+const eCodigo = document.getElementById("eCodigo");
 const eNombre = document.getElementById("eNombre");
 const eArea = document.getElementById("eArea");
 const eModelo = document.getElementById("eModelo");
 const eSerie = document.getElementById("eSerie");
 const eNotas = document.getElementById("eNotas");
 const btnCrearEquipo = document.getElementById("btnCrearEquipo");
+
+const eImportText = document.getElementById("eImportText");
+const btnImportEquiposPegado = document.getElementById("btnImportEquiposPegado");
+
 const tbEquipos = document.getElementById("tbEquipos");
 
 // Config
@@ -517,6 +650,7 @@ const btnCerrarDlg = document.getElementById("btnCerrarDlg");
 
 // Dialog equipo
 const dlgEquipo = document.getElementById("dlgEquipo");
+const deCodigo = document.getElementById("deCodigo");
 const deNombre = document.getElementById("deNombre");
 const deArea = document.getElementById("deArea");
 const deModelo = document.getElementById("deModelo");
@@ -535,13 +669,20 @@ let editingEquipoId = null;
    Helpers
    =========================== */
 
+function getEquipoById(id) {
+  return state.equipos.find(e => e.id === id) || null;
+}
+
 function getEquipoName(id) {
-  const eq = state.equipos.find(e => e.id === id);
-  return eq ? eq.nombre : "Equipo eliminado";
+  const eq = getEquipoById(id);
+  if (!eq) return "Equipo eliminado";
+  const c = (eq.codigo || "").trim();
+  const n = (eq.nombre || "").trim();
+  const txt = `${c} • ${n}`.trim();
+  return txt || "Equipo";
 }
 
 function parseDateTimeLocal(value) {
-  // value: "YYYY-MM-DDTHH:mm"
   const d = new Date(value);
   if (isNaN(d.getTime())) return null;
   return d;
@@ -593,28 +734,58 @@ function refreshDebug() {
     `Umbral global: ${state.config.thresholdHours} h | Repetir: ${state.config.repeatMinutes} min`;
 }
 
+function parseEquiposFromText(txt) {
+  const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const result = [];
+  for (const line of lines) {
+    const parts = line.split(/\t+/);
+    let codigo = "", denom = "";
+    if (parts.length >= 2) {
+      codigo = parts[0].trim();
+      denom = parts.slice(1).join(" ").trim();
+    } else {
+      const m = line.match(/^(\S+)\s+(.*)$/);
+      if (m) { codigo = m[1].trim(); denom = m[2].trim(); }
+    }
+    if (!codigo || !denom) continue;
+    result.push({ codigo, denominacion: denom });
+  }
+  return result;
+}
+
+function equipoExistsByCodigo(codigo) {
+  const c = (codigo||"").trim();
+  if (!c) return false;
+  return state.equipos.some(e => (e.codigo||"").trim() === c);
+}
+
 /* ===========================
    Render
    =========================== */
 
 function renderSelects() {
-  const opts = state.equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)}</option>`).join("");
+  const opts = state.equipos.map(e => {
+    const txt = `${(e.codigo||"").trim()} • ${e.nombre||""}`.trim();
+    return `<option value="${e.id}">${escapeHtml(txt)}</option>`;
+  }).join("");
   fEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
   dEquipo.innerHTML = fEquipo.innerHTML;
 
-  // filtro equipo
   const current = qEquipo.value;
   qEquipo.innerHTML = `<option value="todos">Todos</option>` + (opts || "");
   if ([...qEquipo.options].some(o => o.value === current)) qEquipo.value = current;
 
-  // si no hay equipo seleccionado en form de falla, set
   if (!fEquipo.value && state.equipos[0]) fEquipo.value = state.equipos[0].id;
 }
 
 function renderEquipos() {
   tbEquipos.innerHTML = state.equipos.map(eq => `
     <tr>
-      <td><strong>${escapeHtml(eq.nombre)}</strong><div class="muted">${escapeHtml(eq.serie || "")}</div></td>
+      <td><strong>${escapeHtml(eq.codigo || "-")}</strong></td>
+      <td>
+        <strong>${escapeHtml(eq.nombre || "-")}</strong>
+        <div class="muted">${escapeHtml(eq.serie || "")}</div>
+      </td>
       <td>${escapeHtml(eq.area || "-")}</td>
       <td>${escapeHtml(eq.modelo || "-")}</td>
       <td class="right">
@@ -624,7 +795,7 @@ function renderEquipos() {
         </div>
       </td>
     </tr>
-  `).join("") || `<tr><td colspan="4" class="muted">No hay equipos todavía.</td></tr>`;
+  `).join("") || `<tr><td colspan="5" class="muted">No hay equipos todavía.</td></tr>`;
 }
 
 function filteredFallas() {
@@ -635,14 +806,11 @@ function filteredFallas() {
 
   let arr = [...state.fallas];
 
-  // Estado
   if (est === "pendientes") arr = arr.filter(f => !f.resuelta);
   if (est === "solucionadas") arr = arr.filter(f => f.resuelta);
 
-  // Equipo
   if (eq !== "todos") arr = arr.filter(f => f.equipoId === eq);
 
-  // Texto
   if (text) {
     arr = arr.filter(f => {
       const hay = [
@@ -654,7 +822,6 @@ function filteredFallas() {
     });
   }
 
-  // Solo alertas
   if (soloA) {
     arr = arr.filter(f => {
       if (f.resuelta) return false;
@@ -663,7 +830,6 @@ function filteredFallas() {
     });
   }
 
-  // Orden
   const ord = qOrden.value;
   if (ord === "recientes") arr.sort((a,b)=> new Date(b.occurredAt)-new Date(a.occurredAt));
   if (ord === "antiguas") arr.sort((a,b)=> new Date(a.occurredAt)-new Date(b.occurredAt));
@@ -748,20 +914,56 @@ btnAutofecha.addEventListener("click", ()=> fFecha.value = nowLocalISO());
 
 btnCrearEquipo.addEventListener("click", ()=>{
   const nombre = eNombre.value.trim();
-  if (!nombre) return showToast("Falta el nombre del equipo", "Escribe un nombre para guardar.", "bad");
+  if (!nombre) return showToast("Falta la denominación", "Escribe un nombre para guardar.", "bad");
+
   state.equipos.push({
     id: uid("eq"),
+    codigo: eCodigo.value.trim(),
     nombre,
     area: eArea.value.trim(),
     modelo: eModelo.value.trim(),
     serie: eSerie.value.trim(),
     notas: eNotas.value.trim()
   });
-  eNombre.value = eArea.value = eModelo.value = eSerie.value = "";
+
+  eCodigo.value = "";
+  eNombre.value = "";
+  eArea.value = "";
+  eModelo.value = "";
+  eSerie.value = "";
   eNotas.value = "";
+
   saveState();
   renderAll();
   showToast("Equipo guardado", nombre, "good");
+});
+
+btnImportEquiposPegado.addEventListener("click", ()=>{
+  const txt = eImportText.value.trim();
+  if (!txt) return showToast("Nada que importar", "Pega tu lista primero.", "bad");
+
+  const items = parseEquiposFromText(txt);
+  if (!items.length) return showToast("Formato no reconocido", "Asegúrate de tener Código y Denominación por línea.", "bad");
+
+  let added = 0, skipped = 0;
+  for (const it of items) {
+    if (equipoExistsByCodigo(it.codigo)) { skipped++; continue; }
+    state.equipos.push({
+      id: uid("eq"),
+      codigo: it.codigo,
+      nombre: it.denominacion,
+      area: "",
+      modelo: "",
+      serie: "",
+      notas: ""
+    });
+    added++;
+  }
+
+  saveState();
+  renderAll();
+  showToast("Importación terminada", `Agregados: ${added} • Duplicados omitidos: ${skipped}`, "good");
+  eImportText.value = "";
 });
 
 btnCrearFalla.addEventListener("click", ()=>{
@@ -806,11 +1008,12 @@ function openFallaDialog(f) {
   editingFallaId = f.id;
   dEquipo.value = f.equipoId;
   dTitulo.value = f.titulo || "";
-  // datetime-local: convertir ISO a local YYYY-MM-DDTHH:mm
+
   const d = new Date(f.occurredAt);
   const pad = n => String(n).padStart(2,"0");
   const localVal = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   dFecha.value = localVal;
+
   dUmbral.value = (typeof f.thresholdHours === "number") ? f.thresholdHours : "";
   dDetalle.value = f.detalle || "";
   dEstado.value = f.resuelta ? "solucionada" : "pendiente";
@@ -870,7 +1073,6 @@ btnGuardarFallaEdit.addEventListener("click", ()=>{
   f.resuelta = wantSolved;
   f.solucionNotas = dSolucion.value.trim();
 
-  // si se reabre, permitir avisos otra vez
   if (!f.resuelta) f.lastNotifiedAt = null;
 
   saveState();
@@ -883,6 +1085,7 @@ btnCerrarDlg.addEventListener("click", ()=> dlgFalla.close());
 
 function openEquipoDialog(eq) {
   editingEquipoId = eq.id;
+  deCodigo.value = eq.codigo || "";
   deNombre.value = eq.nombre || "";
   deArea.value = eq.area || "";
   deModelo.value = eq.modelo || "";
@@ -895,12 +1098,15 @@ btnGuardarEquipoEdit.addEventListener("click", ()=>{
   const eq = state.equipos.find(x => x.id === editingEquipoId);
   if (!eq) return;
   const nombre = deNombre.value.trim();
-  if (!nombre) return showToast("Falta el nombre", "No puede quedar vacío.", "bad");
+  if (!nombre) return showToast("Falta la denominación", "No puede quedar vacío.", "bad");
+
+  eq.codigo = deCodigo.value.trim();
   eq.nombre = nombre;
   eq.area = deArea.value.trim();
   eq.modelo = deModelo.value.trim();
   eq.serie = deSerie.value.trim();
   eq.notas = deNotas.value.trim();
+
   saveState();
   renderAll();
   dlgEquipo.close();
@@ -910,7 +1116,7 @@ btnGuardarEquipoEdit.addEventListener("click", ()=>{
 btnCerrarDlgEq.addEventListener("click", ()=> dlgEquipo.close());
 
 /* ===========================
-   Delegación de eventos (tablas)
+   Delegación de eventos
    =========================== */
 document.addEventListener("click", (ev)=>{
   const b = ev.target.closest("button");
@@ -976,7 +1182,7 @@ document.addEventListener("click", (ev)=>{
 });
 
 /* ===========================
-   Filtros (re-render)
+   Filtros
    =========================== */
 [qBuscar, qEstado, qEquipo, qOrden, qSoloAlertas].forEach(el => el.addEventListener("input", renderFallas));
 [qEstado, qEquipo, qOrden, qSoloAlertas].forEach(el => el.addEventListener("change", renderFallas));
@@ -1088,12 +1294,10 @@ function checkAlerts() {
     }
   }
 
-  // Visual hint
   document.title = any ? "⚠ Control de Fallas" : "Control de Fallas";
 }
 
-setInterval(checkAlerts, 60 * 1000); // cada minuto
-// primera corrida al cargar
+setInterval(checkAlerts, 60 * 1000);
 setTimeout(checkAlerts, 800);
 
 /* ===========================
