@@ -1,258 +1,1106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pantaleon · Búsqueda de Equipos con Componentes</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Control de Fallas</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f5f7f6;
-      color: #333;
-    }
-    .header {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      background: white;
-      padding: 15px 30px;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-      gap: 20px;
-    }
-    .logo img {
-      height: 120px;
-    }
-    .area {
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-      color: #f26a21;
-    }
-    .meta {
-      text-align: right;
-      font-size: 14px;
-    }
-    .btn {
-      margin-left: 5px;
-      padding: 7px 14px;
-      background: #f26a21;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-    }
-    .btn:hover {
-      background: #c44f11;
-      transform: scale(1.05);
-    }
-    .search-box {
-      display: flex;
-      justify-content: center;
-      margin: 20px auto;
-      gap: 10px;
-    }
-    .search-box input {
-      width: 250px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    .contador {
-      text-align: center;
-      margin: 10px auto;
-      font-weight: bold;
-      color: #333;
-    }
-    .resultados {
-      margin: 20px auto;
-      max-width: 900px;
-    }
-    .item {
-      background: white;
-      margin: 20px auto;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-      max-width: 800px;
-    }
-    .item strong {
-      color: #f26a21;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: center;
-      font-size: 14px;
-    }
-    th {
-      background: #f26a21;
-      color: white;
-    }
-    #lectorQR {
-      margin: 20px auto;
-      width: 300px;
-      display: none;
-    }
+    :root { --b:#111827; --g:#6b7280; --bg:#0b1220; --card:#111a2e; --line:#22304f; --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    body { margin:0; background: linear-gradient(180deg,#070b14,#0b1220 40%, #070b14); color:#e5e7eb; }
+    header { position: sticky; top:0; backdrop-filter: blur(10px); background: rgba(11,18,32,.7); border-bottom:1px solid rgba(34,48,79,.7); z-index:10; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 14px 22px; }
+    h1 { font-size: 18px; margin: 0; display:flex; align-items:center; gap:10px; }
+    .pill { font-size: 12px; color:#cbd5e1; padding:4px 10px; border:1px solid rgba(34,48,79,.9); border-radius:999px; background: rgba(17,26,46,.6); }
+    nav { display:flex; gap:8px; margin-top: 10px; flex-wrap: wrap; }
+    .tab { border:1px solid rgba(34,48,79,.9); background: rgba(17,26,46,.55); color:#e5e7eb; padding:8px 10px; border-radius: 10px; cursor:pointer; font-weight: 600; }
+    .tab.active { outline: 2px solid rgba(99,102,241,.6); }
+    .row { display:grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
+    @media (min-width: 900px) { .row.two { grid-template-columns: 1.2fr .8fr; } }
+    .card { background: rgba(17,26,46,.7); border: 1px solid rgba(34,48,79,.9); border-radius: 14px; padding: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+    .card h2 { margin:0 0 10px; font-size: 15px; color:#e2e8f0; display:flex; align-items:center; justify-content: space-between; gap:10px; }
+    .muted { color:#94a3b8; font-size: 12px; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 700px) { .grid.cols2 { grid-template-columns: 1fr 1fr; } }
+    label { display:block; font-size: 12px; color:#cbd5e1; margin-bottom: 6px; }
+    input, select, textarea { width: 100%; padding: 10px; border-radius: 10px; border:1px solid rgba(34,48,79,.9); background: rgba(2,6,23,.5); color:#e5e7eb; }
+    textarea { min-height: 90px; resize: vertical; }
+    .btns { display:flex; gap:8px; flex-wrap: wrap; }
+    button { border:1px solid rgba(34,48,79,.9); background: rgba(2,6,23,.35); color:#e5e7eb; padding: 9px 12px; border-radius: 10px; cursor:pointer; font-weight: 700; }
+    button.primary { background: rgba(99,102,241,.25); border-color: rgba(99,102,241,.6); }
+    button.good { background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.55); }
+    button.danger { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.55); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    table { width:100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid rgba(34,48,79,.7); vertical-align: top; }
+    th { text-align: left; color:#cbd5e1; font-size: 12px; font-weight: 800; }
+    .badge { display:inline-flex; align-items:center; gap:6px; font-size: 12px; padding:4px 8px; border-radius: 999px; border: 1px solid rgba(34,48,79,.9); background: rgba(2,6,23,.35); }
+    .b-ok { border-color: rgba(34,197,94,.6); }
+    .b-warn { border-color: rgba(245,158,11,.7); }
+    .b-bad { border-color: rgba(239,68,68,.7); }
+    .right { text-align:right; }
+    .actions { display:flex; gap:6px; flex-wrap: wrap; justify-content: flex-end; }
+    .small { padding:6px 8px; font-size: 12px; border-radius: 10px; }
+    .toast { position: fixed; right: 14px; bottom: 14px; max-width: 360px; z-index: 9999; display:flex; flex-direction: column; gap:8px; }
+    .toast .t { background: rgba(17,26,46,.92); border: 1px solid rgba(34,48,79,.9); border-left-width: 6px; border-radius: 12px; padding: 10px; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+    .t.good { border-left-color: var(--ok); }
+    .t.warn { border-left-color: var(--warn); }
+    .t.bad { border-left-color: var(--bad); }
+    .t .title { font-weight: 900; margin-bottom: 4px; }
+    .t .meta { color:#94a3b8; font-size: 12px; }
+    dialog { border:none; border-radius: 16px; padding:0; max-width: 720px; width: calc(100% - 24px); background: rgba(17,26,46,.98); color:#e5e7eb; box-shadow: 0 25px 60px rgba(0,0,0,.6); }
+    dialog::backdrop { background: rgba(0,0,0,.55); }
+    .dlg { padding: 12px; border:1px solid rgba(34,48,79,.9); border-radius: 16px; }
+    .dlg h3 { margin: 0 0 10px; font-size: 15px; }
+    .hr { height:1px; background: rgba(34,48,79,.7); margin: 10px 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; }
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="logo">
-      <img src="logo.png" alt="Pantaleon Logo">
-    </div>
-    <div class="area">EXTRACCIÓN DE JUGO</div>
-    <div class="meta">
-      <div id="fecha-hora"></div>
-      <div>Responsable: <strong id="responsable"></strong></div>
-      <button class="btn" onclick="cambiarResponsable()">Cambiar Responsable</button>
-    </div>
-  </header>
-
-  <div class="search-box">
-    <input type="text" id="buscarSAP" placeholder="Buscar por Código SAP">
-    <button class="btn" onclick="abrirQR()">📷 Escanear QR</button>
-    <input type="text" id="buscarNombre" placeholder="Buscar por Nombre de Equipo">
+<header>
+  <div class="wrap">
+    <h1>Control de Fallas <span class="pill" id="pillStatus">Guardado local</span></h1>
+    <nav>
+      <button class="tab active" data-tab="fallas">Fallas</button>
+      <button class="tab" data-tab="equipos">Equipos</button>
+      <button class="tab" data-tab="alertas">Alertas / Respaldo</button>
+    </nav>
   </div>
+</header>
 
-  <div id="lectorQR"></div>
-  <div class="contador" id="contador"></div>
-  <div class="resultados" id="resultados"></div>
+<main class="wrap">
+  <!-- FALLAS -->
+  <section id="tab-fallas" class="tabpane">
+    <div class="row two">
+      <div class="card">
+        <h2>
+          <span>Registrar falla</span>
+          <span class="muted">Fecha/hora local (Guatemala)</span>
+        </h2>
+        <div class="grid cols2">
+          <div>
+            <label>Equipo</label>
+            <select id="fEquipo"></select>
+          </div>
+          <div>
+            <label>Tipo / título corto</label>
+            <input id="fTitulo" placeholder="Ej: Banda se desliza / Motor no arranca" />
+          </div>
+          <div>
+            <label>Fecha y hora de la falla</label>
+            <input id="fFecha" type="datetime-local" />
+          </div>
+          <div>
+            <label>Umbral aviso (horas) (opcional)</label>
+            <input id="fUmbral" type="number" min="0" step="0.5" placeholder="Vacío = usar configuración global" />
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label>Descripción / detalle</label>
+          <textarea id="fDetalle" placeholder="Describe lo ocurrido, síntomas, condiciones, etc."></textarea>
+        </div>
+        <div class="btns" style="margin-top:10px">
+          <button class="primary" id="btnCrearFalla">Guardar falla</button>
+          <button id="btnAutofecha">Poner fecha/hora actual</button>
+        </div>
+      </div>
 
-  <!-- Librería para QR -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+      <div class="card">
+        <h2>
+          <span>Filtro rápido</span>
+          <span class="badge" id="badgePendientes">Pendientes: 0</span>
+        </h2>
+        <div class="grid">
+          <div>
+            <label>Buscar (equipo / título / detalle)</label>
+            <input id="qBuscar" placeholder="Escribe para filtrar..." />
+          </div>
+          <div class="grid cols2">
+            <div>
+              <label>Estado</label>
+              <select id="qEstado">
+                <option value="todos">Todos</option>
+                <option value="pendientes">Pendientes</option>
+                <option value="solucionadas">Solucionadas</option>
+              </select>
+            </div>
+            <div>
+              <label>Equipo</label>
+              <select id="qEquipo">
+                <option value="todos">Todos</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid cols2">
+            <div>
+              <label>Orden</label>
+              <select id="qOrden">
+                <option value="recientes">Más recientes</option>
+                <option value="antiguas">Más antiguas</option>
+                <option value="mas_atrasadas">Más atrasadas (pendientes)</option>
+              </select>
+            </div>
+            <div>
+              <label>Solo alertas activas</label>
+              <select id="qSoloAlertas">
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+              </select>
+            </div>
+          </div>
 
-  <script>
-    // Datos embebidos
-    const datosEquipos = [{"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 108270.0, "NOMBRE DEL EQUIPO": "Agua rechazo 1"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109317.0, "NOMBRE DEL EQUIPO": "ANTES BBA AGUA RECHAZO 1"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 108271.0, "NOMBRE DEL EQUIPO": "Agua rechazo 3"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109111.0, "NOMBRE DEL EQUIPO": "ANTES BBA AGUA RECHAZO 3"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109036.0, "NOMBRE DEL EQUIPO": "RE0682, 1800 HP, RATIO 2.28"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112806.0, "NOMBRE DEL EQUIPO": "Lubricación Picadora 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 114031.0, "NOMBRE DEL EQUIPO": "BOMBA LUB PICADORA 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109037.0, "NOMBRE DEL EQUIPO": "Electroimán TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109052.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR BAJA MOLINO 3TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109055.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 4 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109067.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA 2 JUGO FILTRADO TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109078.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA HID GRUA VOLTEO TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109084.0, "NOMBRE DEL EQUIPO": "ANTES MOV. CONDUCTOR CAÑA 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109087.0, "NOMBRE DEL EQUIPO": "RE0629, 1800HP, RATIO 2.30"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112874.0, "NOMBRE DEL EQUIPO": "Lubricación Picadora #1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 114053.0, "NOMBRE DEL EQUIPO": "BBA LUBRICACIÓN PICADORA 1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109093.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 5 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109115.0, "NOMBRE DEL EQUIPO": "Tubería de agua caliente"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109140.0, "NOMBRE DEL EQUIPO": "BOMBA HIDRAÚLICA GRÚA TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109144.0, "NOMBRE DEL EQUIPO": "BOMBA HIDRAÚLICA GRÚA LATERAL"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109148.0, "NOMBRE DEL EQUIPO": "Lavado de rodillos de mesas TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109154.0, "NOMBRE DEL EQUIPO": "RE0683, 1800 HP, RATIO 2.28"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112808.0, "NOMBRE DEL EQUIPO": "Lubricación Picadora 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 114032.0, "NOMBRE DEL EQUIPO": "BOMBA LUB PICADORA 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109170.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 5 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109177.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 6 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109183.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA AGUA ASEPSIA AUX TA Y TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109185.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA AGUA ASEPSIA 2 TA Y TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109186.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA AGUA ASEPSIA 1 TA Y TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109194.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA 1 JUGO FILTRADO TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109244.0, "NOMBRE DEL EQUIPO": "REDUCTOR DE BAJA M2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109251.0, "NOMBRE DEL EQUIPO": "REDUCTOR DE BAJA M3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109257.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109269.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109270.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR DE BAJA MOL6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112895.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR DE ALTA MOL6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112896.0, "NOMBRE DEL EQUIPO": "ANTES LUBRI AUX EJE ALTA M6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109271.0, "NOMBRE DEL EQUIPO": "Antes Acople Flexible Molino 6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109280.0, "NOMBRE DEL EQUIPO": "Electroimán TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109319.0, "NOMBRE DEL EQUIPO": "Tubería de agua caliente"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109339.0, "NOMBRE DEL EQUIPO": "ANTES MOV COND DE CAÑA 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112445.0, "NOMBRE DEL EQUIPO": "ANTES MOV. CONDUCTOR CAÑA 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112789.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA LAVADO DE MESAS TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112820.0, "NOMBRE DEL EQUIPO": "ANTES REDUC DE ALTA MOLINO 4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109166.0, "NOMBRE DEL EQUIPO": "ANTES RED DE BAJA MOLINO 4 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 114073.0, "NOMBRE DEL EQUIPO": "ANTES LUB.AUX RED ALTA M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112914.0, "NOMBRE DEL EQUIPO": "ANTES BBA LUB RED BAJA M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112916.0, "NOMBRE DEL EQUIPO": "ANTES LUB.AUX RED BAJA M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112827.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-1600, 8RPM"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 114087.0, "NOMBRE DEL EQUIPO": "ANTES BBA ASIST MAZA CAÑ M6TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112879.0, "NOMBRE DEL EQUIPO": "REDUCTOR DE ALTA MOLINO 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112880.0, "NOMBRE DEL EQUIPO": "BBA LUBRIC AUX RED ALTA M2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112883.0, "NOMBRE DEL EQUIPO": "Antes Reductor de Alta Molino 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112884.0, "NOMBRE DEL EQUIPO": "BBA LUBRI AUX EJE ALTA M3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112915.0, "NOMBRE DEL EQUIPO": "ANTES LUBR AUX EJE ALTA M3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 120702.0, "NOMBRE DEL EQUIPO": "ANTES NIVELADOR 1 COND. 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 121644.0, "NOMBRE DEL EQUIPO": "ANTES MOV CONDUC AUXILIAR TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 112863.0, "NOMBRE DEL EQUIPO": "ANTES BBA HIDRAÚL COND AUX TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 122113.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR ALIMENTADOR MESA 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 122136.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR ALIMENTADOR MESA 2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 122137.0, "NOMBRE DEL EQUIPO": "Antes Alimentador 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 122139.0, "NOMBRE DEL EQUIPO": "Antes Alimentador 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 122142.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR ALIMENTADOR MESA 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123045.0, "NOMBRE DEL EQUIPO": "Sistema rodillos de limpieza mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123046.0, "NOMBRE DEL EQUIPO": "ANTES REDU RODILLO LIMPIEZ 1 MESA 1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123048.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR RODILLO LIMP 2 MESA 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123050.0, "NOMBRE DEL EQUIPO": "ANTES REDUC RODILLO LIMPIEZ 3 MESA 1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123052.0, "NOMBRE DEL EQUIPO": "Antes Rodillo de limpieza 1 mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123053.0, "NOMBRE DEL EQUIPO": "Antes Rodillo de limpieza 2 mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123054.0, "NOMBRE DEL EQUIPO": "Antes Rodillo de limpieza 3 mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123055.0, "NOMBRE DEL EQUIPO": "Sistema rodillos de limpieza mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123056.0, "NOMBRE DEL EQUIPO": "Antes Rodillo de limpieza 4 mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123057.0, "NOMBRE DEL EQUIPO": "Antes Rodillo de limpieza 5 mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123058.0, "NOMBRE DEL EQUIPO": "Antes Rodillo de limpieza 6 mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123059.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR RODILLO LIMP.4 MESA 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123061.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR RODILLO LIMP.5 MESA 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123063.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR RODILLO LIMP.6 MESA 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123838.0, "NOMBRE DEL EQUIPO": "Tanque Retorno de Fibra TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 122163.0, "NOMBRE DEL EQUIPO": "BOMBA BC0624, CENTRÍFUGA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123839.0, "NOMBRE DEL EQUIPO": "BOMBA BC0634, CENTRÍFUGA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123843.0, "NOMBRE DEL EQUIPO": "Tanque Retorno de Fibra TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 109188.0, "NOMBRE DEL EQUIPO": "BBA 1 RETORNO FIBRA TB (F.USO)"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 123844.0, "NOMBRE DEL EQUIPO": "ANTES BOMBA 2 RETORNO FIBRA TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 124057.0, "NOMBRE DEL EQUIPO": "ANTES Rodillos de Rastrillo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 100061.0, "NOMBRE DEL EQUIPO": "Reductor Rodillos de Rastrillo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127009.0, "NOMBRE DEL EQUIPO": "BBA LIMP FILTRO ROTATIVO TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127013.0, "NOMBRE DEL EQUIPO": "ANTES MOV. CONDUCTOR CAÑA 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127040.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127042.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127046.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127495.0, "NOMBRE DEL EQUIPO": "DISPONIB FRENTE A FURGON S.I."}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127497.0, "NOMBRE DEL EQUIPO": "BOLUTA DAÑADA PREDIO PANAMA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127498.0, "NOMBRE DEL EQUIPO": "PREDIO PANAMA NO LOCALIZADO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127500.0, "NOMBRE DEL EQUIPO": "DAÑADO GALERA FRENT A FURGON"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127501.0, "NOMBRE DEL EQUIPO": "PENDIENTE UBICAR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127502.0, "NOMBRE DEL EQUIPO": "EN MANTENIMIENTO MOLINOS"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127503.0, "NOMBRE DEL EQUIPO": "TALLER REDUCTORES PATIO CAÑA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127507.0, "NOMBRE DEL EQUIPO": "TALLER REDUCTORES PATIO CAÑA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127508.0, "NOMBRE DEL EQUIPO": "TALLER REDUCTORES PATIO CAÑA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127509.0, "NOMBRE DEL EQUIPO": "PENDIENTE UBICACION"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127510.0, "NOMBRE DEL EQUIPO": "PENDIENTE UBICAR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127511.0, "NOMBRE DEL EQUIPO": "PENDIENTE UBICACION"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 127512.0, "NOMBRE DEL EQUIPO": "DISPONIBLE PARA CONDUCTOR 1TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 131922.0, "NOMBRE DEL EQUIPO": "ANTES MOV NIV 2 COND CAÑA 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE", "Codigo SAP": 137286.0, "NOMBRE DEL EQUIPO": "ANTES REDUCTOR DE BAJA MOL1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 109027.0, "NOMBRE DEL EQUIPO": "MOV CONDUC AUX TA (F USO)"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 112794.0, "NOMBRE DEL EQUIPO": "LUB MOV CONDUC AUX TA (F.USO)"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 109028.0, "NOMBRE DEL EQUIPO": "ANTES MOV CONDUC DE CAÑA 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 112796.0, "NOMBRE DEL EQUIPO": "ANTES BBA LUBR CONDUC CAÑA1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 112815.0, "NOMBRE DEL EQUIPO": "Antes Hagglunds MB-1600, 8RPM M2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 114083.0, "NOMBRE DEL EQUIPO": "ANTES BBA ASIST MAZA CAÑ M2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 112818.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-1600, 8RPM"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 112881.0, "NOMBRE DEL EQUIPO": "Rep-Hagglunds MB-2600 Cañero 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 114082.0, "NOMBRE DEL EQUIPO": "BBA1 ASISTIDA MAZA CAÑERA M2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 114089.0, "NOMBRE DEL EQUIPO": "REP-BBA ASISTIDA MAZA CAÑERA M2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 114098.0, "NOMBRE DEL EQUIPO": "BBA2 ASISTIDA MAZA CAÑERA M2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 120701.0, "NOMBRE DEL EQUIPO": "REPUESTO MOV. COND. INTERMEDIO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 122110.0, "NOMBRE DEL EQUIPO": "ANTES MOV FILTRO BAGACILLO TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 123018.0, "NOMBRE DEL EQUIPO": "ANTES BBA 4 MACERACION"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 124375.0, "NOMBRE DEL EQUIPO": "REP-RED SINFÍN RASTRA BAGACILLO TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 124376.0, "NOMBRE DEL EQUIPO": "REP-REDUC SINFÍN RASTRA TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 127044.0, "NOMBRE DEL EQUIPO": "ANTES MOV.COND INTERMEDIO 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 127494.0, "NOMBRE DEL EQUIPO": "TALLER DE REDUCTORES PATIO CAÑ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 127496.0, "NOMBRE DEL EQUIPO": "DESACOPLADA ANTES BBA 1 ASEPSI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 131906.0, "NOMBRE DEL EQUIPO": "Rep-Reductor Conductor Intermedio 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 131911.0, "NOMBRE DEL EQUIPO": "Rep-Reductor Conductor Intermedio 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 135410.0, "NOMBRE DEL EQUIPO": "Repuesto Bombas de Maceración TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-AE/REP", "Codigo SAP": 135411.0, "NOMBRE DEL EQUIPO": "Repuesto Bombas de Maceración TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/AEL", "Codigo SAP": 114050.0, "NOMBRE DEL EQUIPO": "ANTES BBA CONDUCTOR CAÑA 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ASE", "Codigo SAP": 137330.0, "NOMBRE DEL EQUIPO": "Bomba agua asepsia #1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ASE", "Codigo SAP": 137331.0, "NOMBRE DEL EQUIPO": "Bomba agua asepsia auxiliar"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ASE", "Codigo SAP": 137332.0, "NOMBRE DEL EQUIPO": "Bomba agua asepsia #1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": NaN, "NOMBRE DEL EQUIPO": "BANCAZOS SOLDADURA DE MAZAS"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 122827.0, "NOMBRE DEL EQUIPO": "Carretón movil piezas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130772.0, "NOMBRE DEL EQUIPO": "Bancazo 1 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135557.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 1 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130773.0, "NOMBRE DEL EQUIPO": "Bancazo 2 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135558.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 2 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130774.0, "NOMBRE DEL EQUIPO": "Bancazo 3 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135559.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 3 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130775.0, "NOMBRE DEL EQUIPO": "Bancazo 4 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135560.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 4 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130776.0, "NOMBRE DEL EQUIPO": "Bancazo 5 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135561.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 5 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130777.0, "NOMBRE DEL EQUIPO": "Bancazo 6 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135562.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 6 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 130779.0, "NOMBRE DEL EQUIPO": "Bancazo 7 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 135563.0, "NOMBRE DEL EQUIPO": "Reductor Bancazo 7 Soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 142660.0, "NOMBRE DEL EQUIPO": "Bancazo 8 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/BSM", "Codigo SAP": 142661.0, "NOMBRE DEL EQUIPO": "Bancazo 9 soldadura de mazas"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA", "Codigo SAP": 131905.0, "NOMBRE DEL EQUIPO": "Reductor Repuesto Cond Intermedio 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA", "Codigo SAP": 135095.0, "NOMBRE DEL EQUIPO": "Reductor Repuesto Intermedios 3,4,5,6 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA-CIN2TA", "Codigo SAP": 137321.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA-CIN3TA", "Codigo SAP": 135478.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA-CIN4TA", "Codigo SAP": 135096.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 4 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA-CIN5TA", "Codigo SAP": 131908.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 5 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIA-CIN6TA", "Codigo SAP": 131909.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 6 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIB", "Codigo SAP": 131907.0, "NOMBRE DEL EQUIPO": "Reductor Repuesto Intermedios 3,4,5,6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIB-CIN2TB", "Codigo SAP": 137322.0, "NOMBRE DEL EQUIPO": "Reductor Flender  Intermedio 2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIB-CIN3TB", "Codigo SAP": 131910.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIB-CIN4TB", "Codigo SAP": 131912.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIB-CIN5TB", "Codigo SAP": 131913.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 5 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/CIB-CIN6TB", "Codigo SAP": 131914.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Intermedio 6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ECM", "Codigo SAP": NaN, "NOMBRE DEL EQUIPO": "ENFRIAM CHUMACERAS MOL TA/TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ECM", "Codigo SAP": 134721.0, "NOMBRE DEL EQUIPO": "Tanque de agua fría Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ECM", "Codigo SAP": 134722.0, "NOMBRE DEL EQUIPO": "Bba 1 Enfriamiento Chumaceras Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ECM", "Codigo SAP": 134723.0, "NOMBRE DEL EQUIPO": "Bba 2 Enfriamiento Chumaceras Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/ECM", "Codigo SAP": 134725.0, "NOMBRE DEL EQUIPO": "Bba Limpieza de Pisos Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/GPA", "Codigo SAP": 108264.0, "NOMBRE DEL EQUIPO": "Grúa puente, 40 t TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/GPA", "Codigo SAP": 135482.0, "NOMBRE DEL EQUIPO": "Reductor Movimiento 1 Grúa puente 40t TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/GPA", "Codigo SAP": 135483.0, "NOMBRE DEL EQUIPO": "Reductor Movimiento 2 Grúa puente 40t TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/GPA", "Codigo SAP": 131915.0, "NOMBRE DEL EQUIPO": "Grúa puente, 50 t TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/GPB", "Codigo SAP": 108265.0, "NOMBRE DEL EQUIPO": "Grúa puente, 40 t TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/GPB", "Codigo SAP": 131916.0, "NOMBRE DEL EQUIPO": "Grúa puente, 50 t TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/IMB", "Codigo SAP": 108193.0, "NOMBRE DEL EQUIPO": "Tanque agua imbibición"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/IMB", "Codigo SAP": 109182.0, "NOMBRE DEL EQUIPO": "Bomba Agua Imbibición 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/IMB", "Codigo SAP": 109191.0, "NOMBRE DEL EQUIPO": "Bomba Agua Imbibición 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/IMB", "Codigo SAP": 121810.0, "NOMBRE DEL EQUIPO": "Bomba Agua Imbibición AUX TA/TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA", "Codigo SAP": 108282.0, "NOMBRE DEL EQUIPO": "Manejo de jugo TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA", "Codigo SAP": 109112.0, "NOMBRE DEL EQUIPO": "Tubería maceración 4 a 3"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA", "Codigo SAP": 109113.0, "NOMBRE DEL EQUIPO": "Tubería maceración 6 a 5"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA", "Codigo SAP": 109321.0, "NOMBRE DEL EQUIPO": "Tubería maceración 3 a 2"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA", "Codigo SAP": 109323.0, "NOMBRE DEL EQUIPO": "Tubería maceración 5 a 4"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA", "Codigo SAP": 109326.0, "NOMBRE DEL EQUIPO": "Tubería jugo diluido a torres"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA-FRBZOA", "Codigo SAP": 112865.0, "NOMBRE DEL EQUIPO": "Reductor Filtro Bagacillo TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA-SFBZOA", "Codigo SAP": 137323.0, "NOMBRE DEL EQUIPO": "Reductor Sinfin Rastra Bagacillo TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA-TQJFTA", "Codigo SAP": 132007.0, "NOMBRE DEL EQUIPO": "Bomba 1 de Jugo Filtrado TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA-TQJFTA", "Codigo SAP": 132008.0, "NOMBRE DEL EQUIPO": "Bomba 2 de Jugo Filtrado TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA-TQJMTA", "Codigo SAP": 122147.0, "NOMBRE DEL EQUIPO": "Bomba 1 Jugo Mezclado TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJA-TQJMTA", "Codigo SAP": 122149.0, "NOMBRE DEL EQUIPO": "Bomba 2 Jugo Mezclado TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-FRBZOB", "Codigo SAP": 112799.0, "NOMBRE DEL EQUIPO": "Reductor Filtro de Bagacillo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-SFBZOB", "Codigo SAP": NaN, "NOMBRE DEL EQUIPO": "SINFÍN RASTRA DE BAGACILLO TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-SFBZOB", "Codigo SAP": 137324.0, "NOMBRE DEL EQUIPO": "Reductor Sinfin Rastra Bagacillo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-TQJFTB", "Codigo SAP": 109298.0, "NOMBRE DEL EQUIPO": "Bomba 1 Jugo Filtrado TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-TQJFTB", "Codigo SAP": 121814.0, "NOMBRE DEL EQUIPO": "Bomba 2 Jugo Filtrado TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-TQJMTB", "Codigo SAP": 122680.0, "NOMBRE DEL EQUIPO": "Bomba 1 Jugo Mezclado TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MJB-TQJMTB", "Codigo SAP": 122687.0, "NOMBRE DEL EQUIPO": "Bomba 2 Jugo Mezclado TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109042.0, "NOMBRE DEL EQUIPO": "Cuarta Maza PA4-209"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109043.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2003-15-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109044.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-226"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109053.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2004-04-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109054.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-Y2K-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109056.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2015-01-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109059.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2010-01-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109088.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-Y2K3-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109092.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-211"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109094.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-9803"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109155.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2003-03-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109159.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-2003-10-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109161.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2005-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109162.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2004-03-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109169.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2004-01-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109173.0, "NOMBRE DEL EQUIPO": "Maza cañera PAS-2010-02-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109179.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2003-11-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109180.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2003-08-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109240.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2010-05-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109246.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-201"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109248.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-213"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109249.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-04"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109253.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-212"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109255.0, "NOMBRE DEL EQUIPO": "cuarta Maza PBI-220"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109260.0, "NOMBRE DEL EQUIPO": "Maza PBS-204"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109261.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-206"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109263.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-06"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109266.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-9804"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109268.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109273.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-K01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 109275.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-2003-12-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 119798.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2009-01-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 119799.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2015-01 BR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 119806.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2008-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 119906.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2013-02-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120316.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2012-01-MEX"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120317.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2011-02-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120318.0, "NOMBRE DEL EQUIPO": "Cuarta Maza PA4-2003-06"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120319.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2003-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120321.0, "NOMBRE DEL EQUIPO": "Maza cañera PBS-204"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120322.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2004-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120323.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2010-03-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120327.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-9305"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120328.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2003-13-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120330.0, "NOMBRE DEL EQUIPO": "Maza bagacera XX"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120331.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-2012-03-MEX"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120332.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2012-02-MEX"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120333.0, "NOMBRE DEL EQUIPO": "Cuarta maza XX"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120334.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBS-215"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120335.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2011-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120336.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-218"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120338.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-05"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120409.0, "NOMBRE DEL EQUIPO": "Cuarta maza XX"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120434.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-202"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120459.0, "NOMBRE DEL EQUIPO": "Maza superior PBI-224"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120469.0, "NOMBRE DEL EQUIPO": "Maza cañera PBS-208"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120480.0, "NOMBRE DEL EQUIPO": "Maza cañera PBS-2015-02 DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120481.0, "NOMBRE DEL EQUIPO": "Cuarta Maza PBS-Y2K1-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120482.0, "NOMBRE DEL EQUIPO": "Maza Superior PAS-2011-01-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 120483.0, "NOMBRE DEL EQUIPO": "Maza Superior PAS-2009-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 122170.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBS-2015-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 122171.0, "NOMBRE DEL EQUIPO": "Maza Cañera PB1-2015-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 123069.0, "NOMBRE DEL EQUIPO": "Maza Superior PAI-2016-01-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 123070.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2016-02-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 123075.0, "NOMBRE DEL EQUIPO": "Maza superior PBI-2016-05-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124108.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2011-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124111.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2018-03-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124114.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2018-02-ACO-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124115.0, "NOMBRE DEL EQUIPO": "Maza Superior PBS-2018-04-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124710.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2015-06"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124723.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2015-06"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124724.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-214"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 124725.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-9808"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135015.0, "NOMBRE DEL EQUIPO": "Maza PBI-2003-08"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135016.0, "NOMBRE DEL EQUIPO": "Maza PBI-2018-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135017.0, "NOMBRE DEL EQUIPO": "Maza PA4-2000-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135018.0, "NOMBRE DEL EQUIPO": "Maza PBI-2022-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135019.0, "NOMBRE DEL EQUIPO": "Maza PAS-2016-01-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135020.0, "NOMBRE DEL EQUIPO": "Maza PBI-2020-02-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135023.0, "NOMBRE DEL EQUIPO": "Maza PBS-2011-05"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MMG", "Codigo SAP": 135026.0, "NOMBRE DEL EQUIPO": "Maza PAS-2010-01-IND"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 109106.0, "NOMBRE DEL EQUIPO": "Chiller 1 Convertidores Molinos TA/TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 127019.0, "NOMBRE DEL EQUIPO": "Bomba 1 Chiller 1"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 127021.0, "NOMBRE DEL EQUIPO": "Bomba 2 Chiller 1"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 109307.0, "NOMBRE DEL EQUIPO": "Chiller 2 Convertidores Molinos TA/TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 112933.0, "NOMBRE DEL EQUIPO": "Bomba 1 Chiller 2"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 135029.0, "NOMBRE DEL EQUIPO": "Manejadora 1 Convertidores Molinos TA/TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-ENFMOL", "Codigo SAP": 135030.0, "NOMBRE DEL EQUIPO": "Manejadora 2 Convertidores Molinos TA/TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA", "Codigo SAP": 109041.0, "NOMBRE DEL EQUIPO": "Acople de eslingas M1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA-MAZA", "Codigo SAP": 132582.0, "NOMBRE DEL EQUIPO": "Maza Superior S-ISG-2020-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA-MAZA", "Codigo SAP": 132583.0, "NOMBRE DEL EQUIPO": "Maza cañera I-ISG-2020-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA-MAZA", "Codigo SAP": 132584.0, "NOMBRE DEL EQUIPO": "Maza bagacera I-ISG-2020-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA-MAZA", "Codigo SAP": 132585.0, "NOMBRE DEL EQUIPO": "Cuarta maza 4-ISG-2020-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA-POTE", "Codigo SAP": 131902.0, "NOMBRE DEL EQUIPO": "Reductor Planerario Molino 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL1TA-POTE", "Codigo SAP": 137900.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Red Planetario M1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA", "Codigo SAP": 109047.0, "NOMBRE DEL EQUIPO": "Acople de Eslingas M2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA-MAZA", "Codigo SAP": 136976.0, "NOMBRE DEL EQUIPO": "Maza superior S-ISG-2024-01-TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA-MAZA", "Codigo SAP": 136977.0, "NOMBRE DEL EQUIPO": "Maza bagacera I-ISG-2024-02-TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA-MAZA", "Codigo SAP": 136978.0, "NOMBRE DEL EQUIPO": "Maza cañera I-ISG-2024-01-TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA-MAZA", "Codigo SAP": 137068.0, "NOMBRE DEL EQUIPO": "Cuarta Maza 4-ISG-2024-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA-POTE", "Codigo SAP": 137339.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Molino 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL2TA-POTE", "Codigo SAP": 137340.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Red Planetario M2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA", "Codigo SAP": 109160.0, "NOMBRE DEL EQUIPO": "Acople de Eslingas M3TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-MAZA", "Codigo SAP": 132590.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-201-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-MAZA", "Codigo SAP": 132591.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBS-204-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-MAZA", "Codigo SAP": 132592.0, "NOMBRE DEL EQUIPO": "Cuarta Maza PA4-Y2K1-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-MAZA", "Codigo SAP": 134704.0, "NOMBRE DEL EQUIPO": "Maza superior PBS 2015-06"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-MAZA", "Codigo SAP": 136960.0, "NOMBRE DEL EQUIPO": "Maza superior MRS-2024-01-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-POTE", "Codigo SAP": 109040.0, "NOMBRE DEL EQUIPO": "Reductor de Baja Molino 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-POTE", "Codigo SAP": 112913.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Principal Red baja M3TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-POTE", "Codigo SAP": 114072.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Auxiliar Eje Baja M3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-POTE", "Codigo SAP": 112812.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-2400, Cañera M3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-POTE", "Codigo SAP": 114084.0, "NOMBRE DEL EQUIPO": "Bomba 1 Asistida Maza Cañera Molino 3TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL3TA-POTE", "Codigo SAP": 138450.0, "NOMBRE DEL EQUIPO": "Bomba 2 Asistida Maza Cañera Molino 3TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA", "Codigo SAP": 109167.0, "NOMBRE DEL EQUIPO": "Acople flexible M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-MAZA", "Codigo SAP": 109057.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-2004-05-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-MAZA", "Codigo SAP": 120337.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-225"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-MAZA", "Codigo SAP": 132593.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2009-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-MAZA", "Codigo SAP": 132594.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI 2010-05"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-POTE", "Codigo SAP": 109046.0, "NOMBRE DEL EQUIPO": "Reductor de Baja Molino 4 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-POTE", "Codigo SAP": 112911.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Auxiliar Red Baja M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-POTE", "Codigo SAP": 112912.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Principal Red Baja M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-POTE", "Codigo SAP": 112821.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-1600, Cañera M4 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL4TA-POTE", "Codigo SAP": 114085.0, "NOMBRE DEL EQUIPO": "Bomba Asistida Maza Cañera Molino 4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA", "Codigo SAP": 109058.0, "NOMBRE DEL EQUIPO": "Acople flexible M5TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-MAZA", "Codigo SAP": 109062.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-2003-18-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-MAZA", "Codigo SAP": 119905.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2013-01-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-MAZA", "Codigo SAP": 120326.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2010-04-F"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-MAZA", "Codigo SAP": 124707.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2015-07-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-MAZA", "Codigo SAP": 136959.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2024-01-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-POTE", "Codigo SAP": 109171.0, "NOMBRE DEL EQUIPO": "Reductor de Baja Molino 5 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-POTE", "Codigo SAP": 112917.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Auxiliar Red Baja M5TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-POTE", "Codigo SAP": 112918.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Principal Red Baja M5TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-POTE", "Codigo SAP": 112824.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-1600, Cañera M5 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL5TA-POTE", "Codigo SAP": 114086.0, "NOMBRE DEL EQUIPO": "Bomba Asistida Maza Cañera Molino 5TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA", "Codigo SAP": 109061.0, "NOMBRE DEL EQUIPO": "Acople de eslingas M6TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-MAZA", "Codigo SAP": 123072.0, "NOMBRE DEL EQUIPO": "Maza Cañera PBI-2016-06-ACO REPUESTO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-MAZA", "Codigo SAP": 124112.0, "NOMBRE DEL EQUIPO": "Maza Bagacera PBI-2018-05-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-MAZA", "Codigo SAP": 124727.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-2018-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-MAZA", "Codigo SAP": 132595.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2020-03-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-POTE", "Codigo SAP": 100050.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-2600 Cañera M6 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-POTE", "Codigo SAP": 100051.0, "NOMBRE DEL EQUIPO": "Bomba 1 Asistida Maza Cañera Molino 6TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-POTE", "Codigo SAP": 100053.0, "NOMBRE DEL EQUIPO": "Bomba 2 Asistida Maza Cañera Molino 6TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-POTE", "Codigo SAP": 129458.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Molino 6 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MOL6TA-POTE", "Codigo SAP": 137901.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Red Planetario M6TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109049.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2003-04-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109050.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2003-05-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109060.0, "NOMBRE DEL EQUIPO": "Cuarta maza PA4-9707"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109168.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-205-VJ (eje s/camisa)"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109174.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2003-14-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109181.0, "NOMBRE DEL EQUIPO": "Maza bagacera PAI-2003-09-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 109262.0, "NOMBRE DEL EQUIPO": "Maza Sup PAI-2009-03-VJ (eje s/camisa)"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 119805.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-2009-04-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 120324.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2003-17-B"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 121639.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2014-02-IND"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 121640.0, "NOMBRE DEL EQUIPO": "Maza superior PAS-2014-01-IND"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 123073.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2016-07-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 124109.0, "NOMBRE DEL EQUIPO": "Maza superior PAI-2014-02-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 124110.0, "NOMBRE DEL EQUIPO": "Maza cañera PAI-2015-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 132586.0, "NOMBRE DEL EQUIPO": "Maza superior MRS-2022-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 132587.0, "NOMBRE DEL EQUIPO": "Maza cañera MRC-2022-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 132588.0, "NOMBRE DEL EQUIPO": "Maza bagacera MRB-2022-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 132589.0, "NOMBRE DEL EQUIPO": "Cuarta Maza MR4-2022-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 135022.0, "NOMBRE DEL EQUIPO": "Repuesto Maza Sup PBS-2021-01-ACO M4TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 135037.0, "NOMBRE DEL EQUIPO": "Repuesto Maza Sup S-ISG 2020-02 Mol.1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 135113.0, "NOMBRE DEL EQUIPO": "Repuesto Cañera PBI-2022-02-ACO Mol.TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 135190.0, "NOMBRE DEL EQUIPO": "Repuesto Maza Bag I-ISG 2020-03 Mol.TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOA-MZAREP", "Codigo SAP": 138978.0, "NOMBRE DEL EQUIPO": "Maza bagacera MRS-2022-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB", "Codigo SAP": 109238.0, "NOMBRE DEL EQUIPO": "Acople de eslingas M1TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB-MAZA", "Codigo SAP": 132571.0, "NOMBRE DEL EQUIPO": "Maza superior S-ISG-2022-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB-MAZA", "Codigo SAP": 132572.0, "NOMBRE DEL EQUIPO": "Maza cañera I-ISG-2022-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB-MAZA", "Codigo SAP": 132573.0, "NOMBRE DEL EQUIPO": "Maza bagacera S-ISG-2022-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB-MAZA", "Codigo SAP": 132574.0, "NOMBRE DEL EQUIPO": "Cuarta maza 4-ISG-2022-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB-POTE", "Codigo SAP": 127015.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Molino 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL1TB-POTE", "Codigo SAP": 137902.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Red Planetario M1TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB", "Codigo SAP": 109245.0, "NOMBRE DEL EQUIPO": "Acople de Eslingas M2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB-MAZA", "Codigo SAP": 136979.0, "NOMBRE DEL EQUIPO": "Maza superior S-ISG-2024-02-TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB-MAZA", "Codigo SAP": 136980.0, "NOMBRE DEL EQUIPO": "Maza bagacera I-ISG-2024-04-TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB-MAZA", "Codigo SAP": 136981.0, "NOMBRE DEL EQUIPO": "Maza cañera I-ISG-2024-03-TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB-MAZA", "Codigo SAP": 137069.0, "NOMBRE DEL EQUIPO": "Cuarta Maza 4-ISG-2024-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB-POTE", "Codigo SAP": 137336.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Molino 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL2TB-POTE", "Codigo SAP": 137341.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Red Planetario M2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB", "Codigo SAP": 124583.0, "NOMBRE DEL EQUIPO": "Acople Flexible M3TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-MAZA", "Codigo SAP": 109256.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-MAZA", "Codigo SAP": 132577.0, "NOMBRE DEL EQUIPO": "Maza Superior PBS-2018-04-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-MAZA", "Codigo SAP": 132578.0, "NOMBRE DEL EQUIPO": "Maza Cañera PBI-208"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-MAZA", "Codigo SAP": 132987.0, "NOMBRE DEL EQUIPO": "Maza Bagacera PBS 2009-02-VJ"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-POTE", "Codigo SAP": 109178.0, "NOMBRE DEL EQUIPO": "Reductor de Baja Molino 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-POTE", "Codigo SAP": 112919.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Auxiliar Red Baja M3TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-POTE", "Codigo SAP": 112920.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Principal Red Baja M3TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-POTE", "Codigo SAP": 112885.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-2600, 8RPM Cañera M3TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-POTE", "Codigo SAP": 114090.0, "NOMBRE DEL EQUIPO": "Bba 1 Asistida Maza Cañera Molino 3TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL3TB-POTE", "Codigo SAP": 137903.0, "NOMBRE DEL EQUIPO": "Bba 2 Asistida Maza Cañera Molino 3TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB", "Codigo SAP": 124584.0, "NOMBRE DEL EQUIPO": "Acople Flexible M4TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-MAZA", "Codigo SAP": 119803.0, "NOMBRE DEL EQUIPO": "Maza Bagacera PBS-217-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-MAZA", "Codigo SAP": 119907.0, "NOMBRE DEL EQUIPO": "Maza cañera PBS-210"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-MAZA", "Codigo SAP": 120369.0, "NOMBRE DEL EQUIPO": "Cuarta Maza PB4-Y2K1-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-MAZA", "Codigo SAP": 124116.0, "NOMBRE DEL EQUIPO": "Maza superior PBI-2018-06-ACO-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-MAZA", "Codigo SAP": 136961.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2024-01-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-POTE", "Codigo SAP": 109258.0, "NOMBRE DEL EQUIPO": "Reductor de Baja Molino 4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-POTE", "Codigo SAP": 112887.0, "NOMBRE DEL EQUIPO": "Reductor de Alta Molino 4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-POTE", "Codigo SAP": 112888.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Auxiliar Eje Alta M4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-POTE", "Codigo SAP": 112889.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-2600 Cañera M4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-POTE", "Codigo SAP": 114091.0, "NOMBRE DEL EQUIPO": "Bba 1 Asistida Maza Cañera Molino 4TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL4TB-POTE", "Codigo SAP": 137904.0, "NOMBRE DEL EQUIPO": "Bba 2 Asistida Maza Cañera Molino 4TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB", "Codigo SAP": 124585.0, "NOMBRE DEL EQUIPO": "Acople Flexible M5TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-MAZA", "Codigo SAP": 119807.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-Y2K2-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-MAZA", "Codigo SAP": 123074.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-220"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-MAZA", "Codigo SAP": 124709.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2015-08-CAN"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-MAZA", "Codigo SAP": 132579.0, "NOMBRE DEL EQUIPO": "Maza Cañera PBI-2015-02 DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-POTE", "Codigo SAP": 109264.0, "NOMBRE DEL EQUIPO": "Reductor de Baja Molino 5 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-POTE", "Codigo SAP": 112891.0, "NOMBRE DEL EQUIPO": "Reductor de Alta Molino 5TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-POTE", "Codigo SAP": 112892.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Auxiliar Eje Alta M5 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-POTE", "Codigo SAP": 112893.0, "NOMBRE DEL EQUIPO": "Hagglunds MB-2600 Cañera M5 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-POTE", "Codigo SAP": 114092.0, "NOMBRE DEL EQUIPO": "Bomba 1 Asistida Maza Cañera Molino 5TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL5TB-POTE", "Codigo SAP": 137905.0, "NOMBRE DEL EQUIPO": "Bomba 2 Asistida Maza Cañera Molino 5TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB", "Codigo SAP": 131917.0, "NOMBRE DEL EQUIPO": "Acople de Eslingas M6TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-MAZA", "Codigo SAP": 109242.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-08"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-MAZA", "Codigo SAP": 121638.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2014-02-IND"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-MAZA", "Codigo SAP": 132580.0, "NOMBRE DEL EQUIPO": "Maza Superior PBS-2020-04-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-MAZA", "Codigo SAP": 132581.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-2015-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-POTE", "Codigo SAP": 121571.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Cañero M6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-POTE", "Codigo SAP": 121586.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Planetario Cañero M6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-POTE", "Codigo SAP": 122689.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Molino 6 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MOL6TB-POTE", "Codigo SAP": 138249.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Red Planetario M6TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 109089.0, "NOMBRE DEL EQUIPO": "Maza Cañera PBI-223"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 109247.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-216"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 109272.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2011-03"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 109274.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-207"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 120320.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBS-Y2K03-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 120329.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2008-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 121637.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI-2014-01-IND"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 123071.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2016-03-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 123076.0, "NOMBRE DEL EQUIPO": "Repuesto Maza Superior PBS-2016-04-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 123077.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 124113.0, "NOMBRE DEL EQUIPO": "Maza Superior PAS-2018-01-ACO-DR"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 124708.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2019-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 124726.0, "NOMBRE DEL EQUIPO": "Maza Superior PBS-2019-01"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 132575.0, "NOMBRE DEL EQUIPO": "Maza superior PBS-2020-02-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 132576.0, "NOMBRE DEL EQUIPO": "Maza Bagacera PBI-2021-01-ACO"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135013.0, "NOMBRE DEL EQUIPO": "Maza Superior PBS-2020-01-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135021.0, "NOMBRE DEL EQUIPO": "Repuesto bagacera PBI-2020-01-FRI M5TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135038.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI 2023-01 Mol.3 TB Repuest"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135039.0, "NOMBRE DEL EQUIPO": "Maza cañera PBI 2023-02 Mol.5 TB Repuest"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135114.0, "NOMBRE DEL EQUIPO": "Repuesto Cañera PBI-2022-01-ACO Mol.TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135120.0, "NOMBRE DEL EQUIPO": "Repuesto Superior S-ISG-2022-01 Mol.1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 135191.0, "NOMBRE DEL EQUIPO": "Repuesto Bagacera I-ISG-2022-02 Mol TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 138979.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2025-01-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 138980.0, "NOMBRE DEL EQUIPO": "Maza bagacera PBI-2025-02-FRI"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MOB-MZAREP", "Codigo SAP": 138981.0, "NOMBRE DEL EQUIPO": "Cuarta maza PB4-2000-02"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 108194.0, "NOMBRE DEL EQUIPO": "Tanque 1 de maceración TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 122145.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 108195.0, "NOMBRE DEL EQUIPO": "Tanque 2 de maceración TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 126994.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 108196.0, "NOMBRE DEL EQUIPO": "Tanque 3 de maceración TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 121812.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 108197.0, "NOMBRE DEL EQUIPO": "Tanque 4 de maceración TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTA", "Codigo SAP": 126995.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 4 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 108238.0, "NOMBRE DEL EQUIPO": "Tanque 1 de maceración TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 123254.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 108239.0, "NOMBRE DEL EQUIPO": "Tanque 2 de maceración TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 121815.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 108240.0, "NOMBRE DEL EQUIPO": "Tanque 3 de maceración TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 126992.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 108241.0, "NOMBRE DEL EQUIPO": "Tanque 4 de maceración TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/MTB", "Codigo SAP": 126993.0, "NOMBRE DEL EQUIPO": "Bomba Maceración 4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SBA", "Codigo SAP": 137925.0, "NOMBRE DEL EQUIPO": "Tanque Sistema Hidraulico Bypass TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SBA", "Codigo SAP": 137927.0, "NOMBRE DEL EQUIPO": "Bomba Sistema Bypass TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SBB", "Codigo SAP": 137926.0, "NOMBRE DEL EQUIPO": "Tanque Sistema Hidraulico Bypass TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SBB", "Codigo SAP": 137928.0, "NOMBRE DEL EQUIPO": "Bomba Sistema Bypass TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 108244.0, "NOMBRE DEL EQUIPO": "Sistema de lubricación coronas TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 138434.0, "NOMBRE DEL EQUIPO": "Tanque Lubricación coronas TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 138229.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Coronas TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 108245.0, "NOMBRE DEL EQUIPO": "Sistema 1 de lubricación chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 109107.0, "NOMBRE DEL EQUIPO": "Tanque 1 Farval Lubri. Chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 112940.0, "NOMBRE DEL EQUIPO": "Bomba 1 Farval TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 114094.0, "NOMBRE DEL EQUIPO": "Reductor Farval 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 131919.0, "NOMBRE DEL EQUIPO": "Sistema Hidráulico de cabezote 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 138435.0, "NOMBRE DEL EQUIPO": "Tanque 1 Aceite Hidráulico cabezote TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 135008.0, "NOMBRE DEL EQUIPO": "Bomba 1 Sist hidráulico Cabezote TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 134994.0, "NOMBRE DEL EQUIPO": "Sistema hidráulico cabezotes 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 134995.0, "NOMBRE DEL EQUIPO": "Tanque 2 aceite Hidráulico Cabezotes TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 134996.0, "NOMBRE DEL EQUIPO": "Bomba 2 Sistema hidráulico Cabezotes TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 139054.0, "NOMBRE DEL EQUIPO": "Sistema 2 de lubricación chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 109309.0, "NOMBRE DEL EQUIPO": "Tanque 2 Farval Lubri. Chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 112941.0, "NOMBRE DEL EQUIPO": "Bomba Farval 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 123898.0, "NOMBRE DEL EQUIPO": "Reductor Farval 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 139055.0, "NOMBRE DEL EQUIPO": "Sistema 3 de lubricación chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 131918.0, "NOMBRE DEL EQUIPO": "Tanque 3 Farval Lubri. Chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 134998.0, "NOMBRE DEL EQUIPO": "Bomba Farval 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLA", "Codigo SAP": 134999.0, "NOMBRE DEL EQUIPO": "Reductor Farval 3 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 108247.0, "NOMBRE DEL EQUIPO": "Sistema de lubricación coronas TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 138436.0, "NOMBRE DEL EQUIPO": "Tanque Lubricación coronas TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 138230.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Coronas TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 108248.0, "NOMBRE DEL EQUIPO": "Sistema 1 de lubricación chumaceras TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 109310.0, "NOMBRE DEL EQUIPO": "Tanque 1 Farval Lubri. Chumaceras TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 112942.0, "NOMBRE DEL EQUIPO": "Bomba Lubr. Chumaceras Farval 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 114096.0, "NOMBRE DEL EQUIPO": "Reductor Bba Lubr. Chumaceras Farval 1TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 131921.0, "NOMBRE DEL EQUIPO": "Sistema hidráulico de cabezote 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 138437.0, "NOMBRE DEL EQUIPO": "Tanque 1 aceite Hidráulico Cabezote TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 135007.0, "NOMBRE DEL EQUIPO": "Bomba 1 Sist hidráulico Cabezote TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 135001.0, "NOMBRE DEL EQUIPO": "Sistema hidráulico cabezotes 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 135002.0, "NOMBRE DEL EQUIPO": "Tanque aceite Hidráulico Cabezotes 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 135003.0, "NOMBRE DEL EQUIPO": "Bomba Sistema hidráulico Cabezotes 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 139056.0, "NOMBRE DEL EQUIPO": "Sistema 2 de lubricación chumaceras TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 109311.0, "NOMBRE DEL EQUIPO": "Tanque 2 Farval Lubri. Chumaceras TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 112943.0, "NOMBRE DEL EQUIPO": "Bomba Lubr. Chumaceras Farval 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 114095.0, "NOMBRE DEL EQUIPO": "Reductor Bba Lubr.Chumaceras Farval 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 139057.0, "NOMBRE DEL EQUIPO": "Sistema 3 de lubricación chumaceras TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 131920.0, "NOMBRE DEL EQUIPO": "Tanque 3 Farval Lubri. Chumaceras  TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 135005.0, "NOMBRE DEL EQUIPO": "Bomba Lubr. Chumaceras Farval 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/SLB", "Codigo SAP": 135006.0, "NOMBRE DEL EQUIPO": "Reductor Bba Lubr.Chumaceras Farval 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 108280.0, "NOMBRE DEL EQUIPO": "Tuberías de conducción TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 109114.0, "NOMBRE DEL EQUIPO": "Tubería lubricación chumaceras TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 109320.0, "NOMBRE DEL EQUIPO": "Tubería de agua fría TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 109324.0, "NOMBRE DEL EQUIPO": "Tubería de agua imbibición TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 109325.0, "NOMBRE DEL EQUIPO": "Tuberia de agua asepsia TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 109327.0, "NOMBRE DEL EQUIPO": "Tubería lubricación coronas TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 123818.0, "NOMBRE DEL EQUIPO": "Tubería Recirculación de Agua Mol.TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 123837.0, "NOMBRE DEL EQUIPO": "Tanque Retorno Agua Molinos TA a S.R"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCA", "Codigo SAP": 123819.0, "NOMBRE DEL EQUIPO": "Bomba Retorno Agua De Molinos TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 108281.0, "NOMBRE DEL EQUIPO": "Tuberías de conducción TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 109117.0, "NOMBRE DEL EQUIPO": "Tubería lubricación chumaceras TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 109329.0, "NOMBRE DEL EQUIPO": "Tubería de agua fría TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 109334.0, "NOMBRE DEL EQUIPO": "Tubería de agua imbibición TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 109335.0, "NOMBRE DEL EQUIPO": "Tuberia de agua asepsia TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 109338.0, "NOMBRE DEL EQUIPO": "Tubería lubricación coronas TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 123850.0, "NOMBRE DEL EQUIPO": "Tubería Recirculación de Agua Mol.TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 123851.0, "NOMBRE DEL EQUIPO": "Tanque Retorno Agua Molinos TB a S.R"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 123853.0, "NOMBRE DEL EQUIPO": "Bomba Retorno Agua de Molinos TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 123855.0, "NOMBRE DEL EQUIPO": "Tanque Retorno Agua Reductores TB a S.R"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TCB", "Codigo SAP": 123856.0, "NOMBRE DEL EQUIPO": "Bomba Retorno Agua de Reductores"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 109303.0, "NOMBRE DEL EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 109304.0, "NOMBRE DEL EQUIPO": "Bomba 2 Enfriamiento Hidraulicos Aux"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 109305.0, "NOMBRE DEL EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 120745.0, "NOMBRE DEL EQUIPO": "Bomba 1 Torre Enfriamiento Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 120747.0, "NOMBRE DEL EQUIPO": "Bomba 2 Torre Enfriamiento Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 123896.0, "NOMBRE DEL EQUIPO": "Ventilador torre enfriamiento de molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 131560.0, "NOMBRE DEL EQUIPO": "Reductor Ventilador Torre Enfria Molinos"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 127023.0, "NOMBRE DEL EQUIPO": "Bomba Enfriamiento Chiller Variadores"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-MO/TEF", "Codigo SAP": 136319.0, "NOMBRE DEL EQUIPO": "Bomba Agua fría a Bio-etanol"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 109029.0, "NOMBRE DEL EQUIPO": "Nivelador Conductor 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 112797.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador Conductor 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 122694.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Conductor 1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 122691.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Planetario Conductor 1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 123840.0, "NOMBRE DEL EQUIPO": "Tanque Retorno Agua Patio TA a S.R"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 123841.0, "NOMBRE DEL EQUIPO": "Bomba Retorno Agua De Patio TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 131783.0, "NOMBRE DEL EQUIPO": "Cepillo de limpieza Conductor 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA1TA", "Codigo SAP": 131784.0, "NOMBRE DEL EQUIPO": "Reductor Cepillo Limpieza Conductor 1TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA2TA", "Codigo SAP": 109030.0, "NOMBRE DEL EQUIPO": "Nivelador 1 conductor 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA2TA", "Codigo SAP": 127499.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 1 Conductor 2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA2TA", "Codigo SAP": 109031.0, "NOMBRE DEL EQUIPO": "Nivelador 2 conductor 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA2TA", "Codigo SAP": 112800.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 2 Conductor 2TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA2TA", "Codigo SAP": 131995.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDA2TA", "Codigo SAP": 137290.0, "NOMBRE DEL EQUIPO": "Electroimán TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDAXTA", "Codigo SAP": 109152.0, "NOMBRE DEL EQUIPO": "Nivelador Conductor Auxiliar TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDAXTA", "Codigo SAP": 112457.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador Conductor AUX TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDAXTA", "Codigo SAP": 124519.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Conductor AUX TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDAXTA", "Codigo SAP": 100060.0, "NOMBRE DEL EQUIPO": "Bomba Lub Planetario Conductor Aux TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDAXTA", "Codigo SAP": 131786.0, "NOMBRE DEL EQUIPO": "Cepillo de limpieza Cond. Auxiliar TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COA-CDAXTA", "Codigo SAP": 127012.0, "NOMBRE DEL EQUIPO": "Reductor Cepillo De Limpieza Cond AUX TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": NaN, "NOMBRE DEL EQUIPO": "CONDUCTOR BANDA DE CAÑA 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": 124391.0, "NOMBRE DEL EQUIPO": "Nivelador 1 conductor 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": 124392.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 1 Conductor 2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": 131895.0, "NOMBRE DEL EQUIPO": "Nivelador 2 conductor 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": 127505.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 2 Conductor 2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": 132003.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 2TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CBA2TB", "Codigo SAP": 137291.0, "NOMBRE DEL EQUIPO": "Electroimán TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 109230.0, "NOMBRE DEL EQUIPO": "Nivelador Conductor 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 112456.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador Conductor 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 123847.0, "NOMBRE DEL EQUIPO": "Tanque Retorno Agua Patio TB a S.R"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 123848.0, "NOMBRE DEL EQUIPO": "Bomba Retorno Agua Patio TB a S.R"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 124068.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Conductor 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 137869.0, "NOMBRE DEL EQUIPO": "Bba Lubricación Planetario Conductor 1TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 131548.0, "NOMBRE DEL EQUIPO": "Cepillo de limpieza Conductor 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDA1TB", "Codigo SAP": 124493.0, "NOMBRE DEL EQUIPO": "Reductor Cepillo de limpieza Cond 1TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDAXTB", "Codigo SAP": 109228.0, "NOMBRE DEL EQUIPO": "Nivelador Conductor Auxiliar TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDAXTB", "Codigo SAP": 112864.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador Conductor Auxiliar TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-CDAXTB", "Codigo SAP": 131923.0, "NOMBRE DEL EQUIPO": "Reductor Conductor Auxiliar TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-SRSBTB", "Codigo SAP": 124056.0, "NOMBRE DEL EQUIPO": "Rastrillo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-SRSBTB", "Codigo SAP": 111481.0, "NOMBRE DEL EQUIPO": "Reductor rastrillo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-SRSBTB", "Codigo SAP": 137907.0, "NOMBRE DEL EQUIPO": "Rastra Sacabasura TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-SRSBTB", "Codigo SAP": 109039.0, "NOMBRE DEL EQUIPO": "Reductor Rastra Saca Basura TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": NaN, "NOMBRE DEL EQUIPO": "SISTEMA CONDUCCIÓN DE TRASH TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": 124058.0, "NOMBRE DEL EQUIPO": "Conductor 1 trash TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": 109316.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 1 trash TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": 131789.0, "NOMBRE DEL EQUIPO": "Conductor 2 trash TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": 131790.0, "NOMBRE DEL EQUIPO": "Reductor conductor 2 trash TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": 131791.0, "NOMBRE DEL EQUIPO": "Conductor 3 Trash TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-STRSTB", "Codigo SAP": 131792.0, "NOMBRE DEL EQUIPO": "Reductor conductor 3 Trash TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-GV50TA", "Codigo SAP": 131546.0, "NOMBRE DEL EQUIPO": "Sistema hidráulico Grúa volteo TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-GV50TA", "Codigo SAP": 109141.0, "NOMBRE DEL EQUIPO": "Bomba 1 Grúa TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-GV50TA", "Codigo SAP": 109142.0, "NOMBRE DEL EQUIPO": "Bomba 2 Grúa TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-GV50TB", "Codigo SAP": 131547.0, "NOMBRE DEL EQUIPO": "Sistema hidráulico Grúa volteo TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-GV50TB", "Codigo SAP": 109079.0, "NOMBRE DEL EQUIPO": "Bomba 1 Grúa TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/COB-GV50TB", "Codigo SAP": 109219.0, "NOMBRE DEL EQUIPO": "Bomba 2 Grúa TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA", "Codigo SAP": 122114.0, "NOMBRE DEL EQUIPO": "Sistema Lubricación mesas TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-MESA01", "Codigo SAP": 122108.0, "NOMBRE DEL EQUIPO": "Reductor Mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-MESA02", "Codigo SAP": 122138.0, "NOMBRE DEL EQUIPO": "Nivelador 1 Mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-MESA03", "Codigo SAP": 122135.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 1 Mesa 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-MESA02", "Codigo SAP": 122128.0, "NOMBRE DEL EQUIPO": "Reductor Mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-MESA03", "Codigo SAP": 122141.0, "NOMBRE DEL EQUIPO": "Nivelador 2 Mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-MESA04", "Codigo SAP": 127504.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 2 Mesa 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-SRSBTA", "Codigo SAP": 122121.0, "NOMBRE DEL EQUIPO": "Rastra sacabasura 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-SRSBTA", "Codigo SAP": 122123.0, "NOMBRE DEL EQUIPO": "Reductor Rastra sacabasura 1 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-SRSBTA", "Codigo SAP": 122125.0, "NOMBRE DEL EQUIPO": "Rastra sacabasura 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-SRSBTA", "Codigo SAP": 122126.0, "NOMBRE DEL EQUIPO": "Reductor Rastra sacabasura 2 TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122129.0, "NOMBRE DEL EQUIPO": "Conductor 1 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122132.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 1 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122130.0, "NOMBRE DEL EQUIPO": "Conductor 2 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122711.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 2 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122131.0, "NOMBRE DEL EQUIPO": "Conductor 3 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122713.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 3 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122709.0, "NOMBRE DEL EQUIPO": "Conductor 4 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCA-STRSTA", "Codigo SAP": 122715.0, "NOMBRE DEL EQUIPO": "Reductor Conductor 4 Trash TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA01", "Codigo SAP": 109080.0, "NOMBRE DEL EQUIPO": "Nivelador 1 Mesa 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA02", "Codigo SAP": 112857.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 1 Mesa 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA03", "Codigo SAP": 109149.0, "NOMBRE DEL EQUIPO": "Reductor Mesa 1 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA02", "Codigo SAP": 109081.0, "NOMBRE DEL EQUIPO": "Nivelador 2 Mesa 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA03", "Codigo SAP": 112860.0, "NOMBRE DEL EQUIPO": "Reductor Nivelador 2 Mesa 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA04", "Codigo SAP": 109225.0, "NOMBRE DEL EQUIPO": "Reductor Mesa 2 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA03", "Codigo SAP": 109222.0, "NOMBRE DEL EQUIPO": "Reductor Mesa 3 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/MCB-MESA04", "Codigo SAP": 109026.0, "NOMBRE DEL EQUIPO": "Reductor Mesa 4 TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": NaN, "NOMBRE DEL EQUIPO": "DESFIBRADORA DE CAÑA TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134739.0, "NOMBRE DEL EQUIPO": "Reductor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134741.0, "NOMBRE DEL EQUIPO": "Sistema Lubr. Reductor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134742.0, "NOMBRE DEL EQUIPO": "Bba lubricación Red Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134744.0, "NOMBRE DEL EQUIPO": "Tambor Alimentador Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134745.0, "NOMBRE DEL EQUIPO": "Reduc planetario Tambor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134747.0, "NOMBRE DEL EQUIPO": "Sist. Lubr. Reduc Tambor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134748.0, "NOMBRE DEL EQUIPO": "Bba lubri Reduc Tambor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134750.0, "NOMBRE DEL EQUIPO": "Rotor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134751.0, "NOMBRE DEL EQUIPO": "Sist. Lubricación Rotor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134752.0, "NOMBRE DEL EQUIPO": "Tanque Elevado Lubri Rotor Desfibra TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134753.0, "NOMBRE DEL EQUIPO": "Bba Llenado Tq Elevado Rotor Desfib TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134755.0, "NOMBRE DEL EQUIPO": "Bba 1 Lubri Rotor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 134757.0, "NOMBRE DEL EQUIPO": "Bba 2 Lubri Rotor Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 138465.0, "NOMBRE DEL EQUIPO": "Extractor de Martillos Desfibradora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-DESFTA", "Codigo SAP": 138466.0, "NOMBRE DEL EQUIPO": "Bomba de Extractor de Martillos TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-PCH1TA", "Codigo SAP": 123067.0, "NOMBRE DEL EQUIPO": "Reductor Pre-cuchilla TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-PCH1TA", "Codigo SAP": 131924.0, "NOMBRE DEL EQUIPO": "Sistema Lub Reductor Pre Cuchilla TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-PCH1TA", "Codigo SAP": 131925.0, "NOMBRE DEL EQUIPO": "Bomba Lub Reductor Pre Cuchilla TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-PPICTA", "Codigo SAP": 109034.0, "NOMBRE DEL EQUIPO": "Reductor Pre-Picadora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-PPICTA", "Codigo SAP": 112802.0, "NOMBRE DEL EQUIPO": "Sistema Lub Aux Reductor Pre picadora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIA-PPICTA", "Codigo SAP": 114029.0, "NOMBRE DEL EQUIPO": "Bomba Lub Aux Reductor Pre Pcadora TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123223.0, "NOMBRE DEL EQUIPO": "Reductor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123231.0, "NOMBRE DEL EQUIPO": "Sistema Lubr. Reductor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123232.0, "NOMBRE DEL EQUIPO": "Bba lubricación Red Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123225.0, "NOMBRE DEL EQUIPO": "Tambor Alimentador Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123226.0, "NOMBRE DEL EQUIPO": "Reductor Planetario Tambor Alim Desf TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 138260.0, "NOMBRE DEL EQUIPO": "Sist. Lubr. Reduc Tambor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 138261.0, "NOMBRE DEL EQUIPO": "Bba lubri Reduc Tambor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123234.0, "NOMBRE DEL EQUIPO": "Rotor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123235.0, "NOMBRE DEL EQUIPO": "Sistema Lubricación Rotor DesfibradoraTB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123236.0, "NOMBRE DEL EQUIPO": "Tanque Elevado Lubri Rotor Desfibra TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123237.0, "NOMBRE DEL EQUIPO": "Bomba Lubricación Tanque Elevado"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123239.0, "NOMBRE DEL EQUIPO": "Bba 1 Lubri Rotor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 123240.0, "NOMBRE DEL EQUIPO": "Bba 2 Lubri Rotor Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 138467.0, "NOMBRE DEL EQUIPO": "Extractor de Martillos Desfibradora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-DESFTB", "Codigo SAP": 138468.0, "NOMBRE DEL EQUIPO": "Bomba de Extractor de Martillos TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-PPICTB", "Codigo SAP": 109235.0, "NOMBRE DEL EQUIPO": "Reductor Pre-Picadora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-PPICTB", "Codigo SAP": 123065.0, "NOMBRE DEL EQUIPO": "Sistema Lub Reductor Pre picadora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/PIB-PPICTB", "Codigo SAP": 123066.0, "NOMBRE DEL EQUIPO": "Bomba Lub Reductor Pre Picadora TB"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/SLA", "Codigo SAP": 108262.0, "NOMBRE DEL EQUIPO": "Sistema de lubricación centralizado TA"}, {"UBICACIÓN TECNICA": "PSAI-AZ-EX-PC/SLB", "Codigo SAP": 108263.0, "NOMBRE DEL EQUIPO": "Sistema de lubricación centralizado TB"}];
-    const datosBombas = [{"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 471765, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 471141, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": "BELOMOIDE", "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 120745, "EQUIPO": "Bomba 1 Torre Enfriamiento Molinos", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 120747, "EQUIPO": "Bomba 2 Torre Enfriamiento Molinos", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 473010, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120747, "EQUIPO": "Bomba 2 Torre Enfriamiento Molinos", "COMPONENTE": "EJE", "CARACTERISTICAS": "CAMBIO", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120747, "EQUIPO": "Bomba 2 Torre Enfriamiento Molinos", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 120747, "EQUIPO": "Bomba 2 Torre Enfriamiento Molinos", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 19778, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 120747, "EQUIPO": "Bomba 2 Torre Enfriamiento Molinos", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6311, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 120747, "EQUIPO": "Bomba 2 Torre Enfriamiento Molinos", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 109303, "EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "7840S", "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109303, "EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA", "COMPONENTE": "EJE", "CARACTERISTICAS": "CAMBIO", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109303, "EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3306, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109303, "EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 330663, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109303, "EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6207, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109303, "EQUIPO": "Bomba 1 Enfriamiento Hidraulicos MTA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 109304, "EQUIPO": "Bomba 2 Enfriamiento Hidraulicos Aux", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "7840S", "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109304, "EQUIPO": "Bomba 2 Enfriamiento Hidraulicos Aux", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3306, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109304, "EQUIPO": "Bomba 2 Enfriamiento Hidraulicos Aux", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 330663, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109304, "EQUIPO": "Bomba 2 Enfriamiento Hidraulicos Aux", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6207, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109304, "EQUIPO": "Bomba 2 Enfriamiento Hidraulicos Aux", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 109305, "EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "7840S", "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109305, "EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB", "COMPONENTE": "EJE", "CARACTERISTICAS": "CAMBIO", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109305, "EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3306, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109305, "EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 330663, "MARCA": "NATIONAL", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109305, "EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6207, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109305, "EQUIPO": "Bomba 3 Enfriamiento Hidraulicos MTB", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3.5 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3.5 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": "ADBESTO", "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137330, "EQUIPO": "Bomba de Agua Asepsia #1 TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": NaN, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3.5 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3.5 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": "ADBESTO", "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137332, "EQUIPO": "Bomba de Agua Asepsia #1 TB", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3.5 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "O-RING", "CARACTERISTICAS": "3.5 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": "ADBESTO", "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "BUJE", "CARACTERISTICAS": "DIAMETRO = 3/4\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "BUJE", "CARACTERISTICAS": "LARGO = 5/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "BUJE", "CARACTERISTICAS": "INTREIOR = 5 5/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "BUJE", "CARACTERISTICAS": "PESTAÑA DE BUJE = 3/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 137331, "EQUIPO": "Bomba de Agua Asepsia Aux", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3313, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "1/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6313, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": NaN, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "VOLUTA", "CARACTERISTICAS": "CAMBIO", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/64\"", "MARCA": "BELOMOIDE", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109191, "EQUIPO": "Bomba de Agua Imbibición 1 TB", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 471763, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 471141, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\"", "MARCA": "ADBESTO", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/64\"", "MARCA": "BELOMOIDE", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 109182, "EQUIPO": "Bomba de Agua Imbibición 1 TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 471763, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 471141, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6309, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\"", "MARCA": "ADBESTO", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/64\"", "MARCA": "BELOMOIDE", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 121810, "EQUIPO": "Bomba de Agua Imbibición Aux TA/TB", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "24X114X17 MM", "MARCA": "NBR", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 7317, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 317, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 7317, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 7217, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 217, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "DIAMETRO = 3 3/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "Largo = 7 5/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "Espesor = 3/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122149, "EQUIPO": "Bomba 2 Jugo Mezclado TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "O-RING", "CARACTERISTICAS": "5/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "BUJE", "CARACTERISTICAS": "LARGO EXTERIOR = 5 5/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "BUJE", "CARACTERISTICAS": "LARGO INTERIOR = 5 1/4\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "BUJE", "CARACTERISTICAS": "PESTAÑA DE BUJE = 3/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "BUJE", "CARACTERISTICAS": "DIAMETRO DE BUJE = 2 1/2", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": "BELOMOIDE", "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/16\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": "ADBESTO", "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123853, "EQUIPO": "Bomba Retorno Agua de Molinos TB", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 123819, "EQUIPO": "Bomba Retorno Agua de Molinos TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "LARGO EXTERIOR = 5 5/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123819, "EQUIPO": "Bomba Retorno Agua de Molinos TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "LARGO INTERIOR = 5 1/4\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123819, "EQUIPO": "Bomba Retorno Agua de Molinos TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "PESTAÑA DE BUJE = 3/8\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123819, "EQUIPO": "Bomba Retorno Agua de Molinos TA", "COMPONENTE": "BUJE", "CARACTERISTICAS": "DIAMETRO DE BUJE = 2 1/2", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123819, "EQUIPO": "Bomba Retorno Agua de Molinos TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 122147, "EQUIPO": "Bomba 1 jugo mezclado TA ", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "NUEVO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122147, "EQUIPO": "Bomba 1 jugo mezclado TA ", "COMPONENTE": "EJE", "CARACTERISTICAS": "NUEVO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122147, "EQUIPO": "Bomba 1 jugo mezclado TA ", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "NUEVO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 122147, "EQUIPO": "Bomba 1 jugo mezclado TA ", "COMPONENTE": "RODAMIENTOS ", "CARACTERISTICAS": "NUEVOS ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122147, "EQUIPO": "Bomba 1 jugo mezclado TA ", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "CAMBIO ", "MARCA": "TERESTIC 100", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 123254, "EQUIPO": "Bomba maceración 1 TB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "NUEVO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 123254, "EQUIPO": "Bomba maceración 1 TB", "COMPONENTE": "EJE", "CARACTERISTICAS": "NUEVO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 123254, "EQUIPO": "Bomba maceración 1 TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\" y 1/64\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 123254, "EQUIPO": "Bomba maceración 1 TB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "NUEVO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123254, "EQUIPO": "Bomba maceración 1 TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": "NUEVO ", "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 123254, "EQUIPO": "Bomba maceración 1 TB", "COMPONENTE": "TORNILLOS DE ANCLAJE ", "CARACTERISTICAS": "4 TORNILLOS ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 121815, "EQUIPO": "Bomba Maceración 2 TB", "COMPONENTE": "EJE", "CARACTERISTICAS": "CAMBIO ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COLPING", "AÑO": 2025.0}, {"CODIGO SAP": 121815, "EQUIPO": "Bomba Maceración 2 TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32\" y 1/64\"", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COLPING", "AÑO": 2025.0}, {"CODIGO SAP": 121815, "EQUIPO": "Bomba Maceración 2 TB", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "TERESTIC 100 ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 132008, "EQUIPO": "Bomba 2 de Jugo Filtrado TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 417351, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COLPING", "AÑO": 2025.0}, {"CODIGO SAP": 132008, "EQUIPO": "Bomba 2 de Jugo Filtrado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3316, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COLPING", "AÑO": 2025.0}, {"CODIGO SAP": 132008, "EQUIPO": "Bomba 2 de Jugo Filtrado TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 417351, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 132008, "EQUIPO": "Bomba 2 de Jugo Filtrado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6316, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 132008, "EQUIPO": "Bomba 2 de Jugo Filtrado TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "TERESTIC 100 ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 126995, "EQUIPO": "Bomba Maceración 4 TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "48X73X12 mm", "MARCA": "NBR", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 126995, "EQUIPO": "Bomba Maceración 4 TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6310, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": 2025.0}, {"CODIGO SAP": 126995, "EQUIPO": "Bomba Maceración 4 TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "48X73X12 mm", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 126995, "EQUIPO": "Bomba Maceración 4 TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 7310, "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 126995, "EQUIPO": "Bomba Maceración 4 TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "TERESTIC 100 ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 132007, "EQUIPO": "Bomba 1 de Jugo Filtrado TA", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": 30000, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 132007, "EQUIPO": "Bomba 1 de Jugo Filtrado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 3316, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "COPLING", "AÑO": 2025.0}, {"CODIGO SAP": 132007, "EQUIPO": "Bomba 1 de Jugo Filtrado TA", "COMPONENTE": "COJINETE", "CARACTERISTICAS": 6316, "MARCA": "SKF ", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 132007, "EQUIPO": "Bomba 1 de Jugo Filtrado TA", "COMPONENTE": "ACEITE", "CARACTERISTICAS": "TERESTIC 100 ", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": NaN, "AÑO": 2025.0}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "85X114X17MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": "NUP 217E-XL-TVP2", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": 2025.0}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": "7217B-XL-JP", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "IMPULSOR", "AÑO": NaN}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "RETENEDOR", "CARACTERISTICAS": "85X114X17 MM", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": NaN}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": "7317B-XL-JP-UA", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": NaN}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": "NUP 317E-XL-TVP2", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": NaN}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "COJINETE", "CARACTERISTICAS": "7317BECBP", "MARCA": NaN, "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": NaN}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/32 \"", "MARCA": "VELOMOIDE", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": NaN}, {"CODIGO SAP": 122687, "EQUIPO": "Bomba 2 Jugo Mezclado TB", "COMPONENTE": "EMPAQUE", "CARACTERISTICAS": "1/8\"", "MARCA": "VELOMOIDE", "CODIGO DE REPUESTO": NaN, "DESCRIPCIÓN": NaN, "POSICION": "POLEA", "AÑO": NaN}];
+          <div class="btns">
+            <button id="btnPermisoNotif">Activar notificaciones</button>
+            <button class="danger" id="btnResetDemo" title="Borra todo">Borrar todo</button>
+          </div>
+          <div class="muted">
+            * Las notificaciones dependen del navegador y permisos. Aunque no se notifique, siempre verás avisos en pantalla.
+          </div>
+        </div>
+      </div>
+    </div>
 
-    function mostrarResultados(datos) {
-      const contenedor = document.getElementById("resultados");
-      const contador = document.getElementById("contador");
-      contenedor.innerHTML = "";
-      contador.innerHTML = "";
+    <div class="card" style="margin-top:12px">
+      <h2>
+        <span>Historial de fallas</span>
+        <span class="muted" id="lblConteo"></span>
+      </h2>
+      <div style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Estado</th>
+              <th>Equipo</th>
+              <th>Falla</th>
+              <th>Fecha/hora</th>
+              <th>Atraso</th>
+              <th class="right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbFallas"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-      if (datos.length === 0) {
-        contador.innerHTML = "No se encontraron equipos";
-        return;
-      }
+  <!-- EQUIPOS -->
+  <section id="tab-equipos" class="tabpane" style="display:none">
+    <div class="row two">
+      <div class="card">
+        <h2>Registrar equipo</h2>
+        <div class="grid cols2">
+          <div>
+            <label>Nombre del equipo</label>
+            <input id="eNombre" placeholder="Ej: Tractor 12 / Bomba #3 / Esparcidor 5" />
+          </div>
+          <div>
+            <label>Área / Frente</label>
+            <input id="eArea" placeholder="Ej: Fertilización / Escarificado / Taller" />
+          </div>
+          <div>
+            <label>Marca / Modelo</label>
+            <input id="eModelo" placeholder="Ej: John Deere 6110 / Warman 6x4" />
+          </div>
+          <div>
+            <label>Serie / Placa</label>
+            <input id="eSerie" placeholder="Opcional" />
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label>Notas del equipo</label>
+          <textarea id="eNotas" placeholder="Detalles importantes del equipo (capacidad, ubicación, etc.)"></textarea>
+        </div>
+        <div class="btns" style="margin-top:10px">
+          <button class="primary" id="btnCrearEquipo">Guardar equipo</button>
+        </div>
+      </div>
 
-      contador.innerHTML = "Se encontraron " + datos.length + " equipo(s)";
-
-      datos.forEach(item => {
-        const div = document.createElement("div");
-        div.classList.add("item");
-        div.innerHTML = `
-          <strong>Ubicación Técnica:</strong> ${item["UBICACIÓN TECNICA"] || ""}<br>
-          <strong>Código SAP:</strong> ${item["Codigo SAP"] || ""}<br>
-          <strong>Nombre del Equipo:</strong> ${item["NOMBRE DEL EQUIPO"] || ""}
-        `;
-
-        // Buscar componentes en datosBombas
-        const sap = (item["Codigo SAP"]+"").trim();
-        const relacionados = datosBombas.filter(c => (c["CODIGO SAP"]+"").trim() === sap);
-
-        if (relacionados.length > 0) {
-          div.innerHTML += `<p><strong>Componentes encontrados: ${relacionados.length}</strong></p>`;
-          let tabla = `<table>
+      <div class="card">
+        <h2>Listado de equipos</h2>
+        <div class="muted">Puedes editar o eliminar (si eliminas un equipo, sus fallas quedan “huérfanas” y se verán como “Equipo eliminado”).</div>
+        <div class="hr"></div>
+        <div style="overflow:auto">
+          <table>
             <thead>
               <tr>
-                <th>Componente</th>
-                <th>Características</th>
-                <th>Marca</th>
-                <th>Código Repuesto</th>
-                <th>Descripción</th>
-                <th>Posición</th>
-                <th>Año</th>
+                <th>Equipo</th>
+                <th>Área</th>
+                <th>Modelo</th>
+                <th class="right">Acciones</th>
               </tr>
             </thead>
-            <tbody>`;
+            <tbody id="tbEquipos"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
 
-          relacionados.forEach(c => {
-            tabla += `<tr>
-              <td>${c["COMPONENTE"] || ""}</td>
-              <td>${c["CARACTERISTICAS"] || ""}</td>
-              <td>${c["MARCA"] || ""}</td>
-              <td>${c["CODIGO DE REPUESTO"] || ""}</td>
-              <td>${c["DESCRIPCIÓN"] || ""}</td>
-              <td>${c["POSICION"] || ""}</td>
-              <td>${c["AÑO"] || ""}</td>
-            </tr>`;
-          });
+  <!-- ALERTAS / RESPALDO -->
+  <section id="tab-alertas" class="tabpane" style="display:none">
+    <div class="row two">
+      <div class="card">
+        <h2>Configuración de avisos</h2>
+        <div class="grid">
+          <div class="grid cols2">
+            <div>
+              <label>Umbral global (horas)</label>
+              <input id="cfgUmbral" type="number" min="0" step="0.5" />
+              <div class="muted">Si una falla no tiene umbral propio, se usa este.</div>
+            </div>
+            <div>
+              <label>Repetir aviso cada (minutos)</label>
+              <input id="cfgRepetir" type="number" min="1" step="1" />
+              <div class="muted">Evita spam: el sistema espera este tiempo para volver a avisar por la misma falla.</div>
+            </div>
+          </div>
+          <div class="btns">
+            <button class="primary" id="btnGuardarCfg">Guardar configuración</button>
+            <button id="btnTestAviso">Probar aviso</button>
+          </div>
+        </div>
+      </div>
 
-          tabla += `</tbody></table>`;
-          div.innerHTML += tabla;
-        }
+      <div class="card">
+        <h2>Respaldo / Exportar</h2>
+        <div class="grid">
+          <div class="btns">
+            <button class="primary" id="btnExportar">Exportar JSON</button>
+            <button id="btnImportar">Importar JSON</button>
+          </div>
+          <div class="muted">
+            Exporta a un archivo para guardarlo en WhatsApp/Drive y poder restaurar si cambias de teléfono.
+          </div>
+          <input id="fileImport" type="file" accept="application/json" style="display:none" />
+        </div>
+        <div class="hr"></div>
+        <div class="muted mono" id="dbgInfo"></div>
+      </div>
+    </div>
+  </section>
 
-        contenedor.appendChild(div);
-      });
+  <dialog id="dlgFalla">
+    <div class="dlg">
+      <h3>Editar falla</h3>
+      <div class="grid cols2">
+        <div>
+          <label>Equipo</label>
+          <select id="dEquipo"></select>
+        </div>
+        <div>
+          <label>Título</label>
+          <input id="dTitulo" />
+        </div>
+        <div>
+          <label>Fecha/hora</label>
+          <input id="dFecha" type="datetime-local" />
+        </div>
+        <div>
+          <label>Umbral aviso (horas)</label>
+          <input id="dUmbral" type="number" min="0" step="0.5" placeholder="Vacío = global" />
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <label>Detalle</label>
+        <textarea id="dDetalle"></textarea>
+      </div>
+
+      <div class="grid cols2" style="margin-top:10px">
+        <div>
+          <label>Estado</label>
+          <select id="dEstado">
+            <option value="pendiente">Pendiente</option>
+            <option value="solucionada">Solucionada</option>
+          </select>
+        </div>
+        <div>
+          <label>Notas de solución (si aplica)</label>
+          <input id="dSolucion" placeholder="Ej: se cambió sensor / se ajustó correa..." />
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div>
+        <h3 style="margin:0 0 6px; font-size:14px;">Comentarios</h3>
+        <div class="muted" id="dComentariosInfo"></div>
+        <div style="margin-top:8px">
+          <label>Nuevo comentario</label>
+          <textarea id="dNuevoComentario" placeholder="Agrega observaciones, repuestos, quién atendió, etc."></textarea>
+          <div class="btns" style="margin-top:8px">
+            <button class="good" id="btnAddComentario">Agregar comentario</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+        <div id="dComentariosLista"></div>
+      </div>
+
+      <div class="btns" style="margin-top:12px; justify-content:flex-end">
+        <button id="btnCerrarDlg">Cerrar</button>
+        <button class="primary" id="btnGuardarFallaEdit">Guardar cambios</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dlgEquipo">
+    <div class="dlg">
+      <h3>Editar equipo</h3>
+      <div class="grid cols2">
+        <div>
+          <label>Nombre</label>
+          <input id="deNombre" />
+        </div>
+        <div>
+          <label>Área</label>
+          <input id="deArea" />
+        </div>
+        <div>
+          <label>Marca / Modelo</label>
+          <input id="deModelo" />
+        </div>
+        <div>
+          <label>Serie / Placa</label>
+          <input id="deSerie" />
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <label>Notas</label>
+        <textarea id="deNotas"></textarea>
+      </div>
+      <div class="btns" style="margin-top:12px; justify-content:flex-end">
+        <button id="btnCerrarDlgEq">Cerrar</button>
+        <button class="primary" id="btnGuardarEquipoEdit">Guardar cambios</button>
+      </div>
+    </div>
+  </dialog>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===========================
+   Control de Fallas (local)
+   =========================== */
+
+const STORE_KEY = "controlFallas.v1";
+
+const nowLocalISO = () => {
+  const d = new Date();
+  // datetime-local requiere formato sin zona: YYYY-MM-DDTHH:mm
+  const pad = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+function uid(prefix="id") {
+  return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return defaultState();
+    const s = JSON.parse(raw);
+    return normalizeState(s);
+  } catch {
+    return defaultState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  pillStatus.textContent = "Guardado ✔";
+  setTimeout(()=> pillStatus.textContent = "Guardado local", 900);
+}
+
+function defaultState() {
+  return normalizeState({
+    config: { thresholdHours: 6, repeatMinutes: 30 },
+    equipos: [
+      { id: uid("eq"), nombre: "Equipo ejemplo", area: "Área", modelo: "Modelo", serie: "", notas: "" }
+    ],
+    fallas: []
+  });
+}
+
+function normalizeState(s) {
+  if (!s || typeof s !== "object") s = {};
+  s.config ??= { thresholdHours: 6, repeatMinutes: 30 };
+  if (typeof s.config.thresholdHours !== "number") s.config.thresholdHours = 6;
+  if (typeof s.config.repeatMinutes !== "number") s.config.repeatMinutes = 30;
+  s.equipos = Array.isArray(s.equipos) ? s.equipos : [];
+  s.fallas = Array.isArray(s.fallas) ? s.fallas : [];
+  // Normalizar fallas
+  for (const f of s.fallas) {
+    f.comentarios = Array.isArray(f.comentarios) ? f.comentarios : [];
+    if (typeof f.resuelta !== "boolean") f.resuelta = false;
+    if (!f.createdAt) f.createdAt = new Date().toISOString();
+    if (!("lastNotifiedAt" in f)) f.lastNotifiedAt = null;
+  }
+  return s;
+}
+
+let state = loadState();
+
+/* ===========================
+   DOM refs
+   =========================== */
+const pillStatus = document.getElementById("pillStatus");
+const tabs = [...document.querySelectorAll(".tab")];
+const panes = {
+  fallas: document.getElementById("tab-fallas"),
+  equipos: document.getElementById("tab-equipos"),
+  alertas: document.getElementById("tab-alertas")
+};
+
+// Crear falla
+const fEquipo = document.getElementById("fEquipo");
+const fTitulo = document.getElementById("fTitulo");
+const fFecha = document.getElementById("fFecha");
+const fUmbral = document.getElementById("fUmbral");
+const fDetalle = document.getElementById("fDetalle");
+const btnCrearFalla = document.getElementById("btnCrearFalla");
+const btnAutofecha = document.getElementById("btnAutofecha");
+
+// Filtros
+const qBuscar = document.getElementById("qBuscar");
+const qEstado = document.getElementById("qEstado");
+const qEquipo = document.getElementById("qEquipo");
+const qOrden = document.getElementById("qOrden");
+const qSoloAlertas = document.getElementById("qSoloAlertas");
+
+const tbFallas = document.getElementById("tbFallas");
+const lblConteo = document.getElementById("lblConteo");
+const badgePendientes = document.getElementById("badgePendientes");
+
+const btnPermisoNotif = document.getElementById("btnPermisoNotif");
+const btnResetDemo = document.getElementById("btnResetDemo");
+
+// Equipos
+const eNombre = document.getElementById("eNombre");
+const eArea = document.getElementById("eArea");
+const eModelo = document.getElementById("eModelo");
+const eSerie = document.getElementById("eSerie");
+const eNotas = document.getElementById("eNotas");
+const btnCrearEquipo = document.getElementById("btnCrearEquipo");
+const tbEquipos = document.getElementById("tbEquipos");
+
+// Config
+const cfgUmbral = document.getElementById("cfgUmbral");
+const cfgRepetir = document.getElementById("cfgRepetir");
+const btnGuardarCfg = document.getElementById("btnGuardarCfg");
+const btnTestAviso = document.getElementById("btnTestAviso");
+
+// Respaldo
+const btnExportar = document.getElementById("btnExportar");
+const btnImportar = document.getElementById("btnImportar");
+const fileImport = document.getElementById("fileImport");
+const dbgInfo = document.getElementById("dbgInfo");
+
+// Dialog falla
+const dlgFalla = document.getElementById("dlgFalla");
+const dEquipo = document.getElementById("dEquipo");
+const dTitulo = document.getElementById("dTitulo");
+const dFecha = document.getElementById("dFecha");
+const dUmbral = document.getElementById("dUmbral");
+const dDetalle = document.getElementById("dDetalle");
+const dEstado = document.getElementById("dEstado");
+const dSolucion = document.getElementById("dSolucion");
+const dComentariosInfo = document.getElementById("dComentariosInfo");
+const dNuevoComentario = document.getElementById("dNuevoComentario");
+const dComentariosLista = document.getElementById("dComentariosLista");
+const btnAddComentario = document.getElementById("btnAddComentario");
+const btnGuardarFallaEdit = document.getElementById("btnGuardarFallaEdit");
+const btnCerrarDlg = document.getElementById("btnCerrarDlg");
+
+// Dialog equipo
+const dlgEquipo = document.getElementById("dlgEquipo");
+const deNombre = document.getElementById("deNombre");
+const deArea = document.getElementById("deArea");
+const deModelo = document.getElementById("deModelo");
+const deSerie = document.getElementById("deSerie");
+const deNotas = document.getElementById("deNotas");
+const btnGuardarEquipoEdit = document.getElementById("btnGuardarEquipoEdit");
+const btnCerrarDlgEq = document.getElementById("btnCerrarDlgEq");
+
+// Toast
+const toast = document.getElementById("toast");
+
+let editingFallaId = null;
+let editingEquipoId = null;
+
+/* ===========================
+   Helpers
+   =========================== */
+
+function getEquipoName(id) {
+  const eq = state.equipos.find(e => e.id === id);
+  return eq ? eq.nombre : "Equipo eliminado";
+}
+
+function parseDateTimeLocal(value) {
+  // value: "YYYY-MM-DDTHH:mm"
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+
+function fmtDateTime(isoOrDate) {
+  const d = (isoOrDate instanceof Date) ? isoOrDate : new Date(isoOrDate);
+  if (isNaN(d.getTime())) return "-";
+  return d.toLocaleString("es-GT", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+}
+
+function hoursSince(occurredIso) {
+  const d = new Date(occurredIso);
+  const ms = Date.now() - d.getTime();
+  return ms / 3600000;
+}
+
+function classifyDelay(f) {
+  if (f.resuelta) return { cls:"b-ok", label:"Solucionada", sev:"good" };
+  const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
+  const h = hoursSince(f.occurredAt);
+  if (h >= th * 2) return { cls:"b-bad", label:"Pendiente (crítica)", sev:"bad" };
+  if (h >= th) return { cls:"b-warn", label:"Pendiente (alerta)", sev:"warn" };
+  return { cls:"", label:"Pendiente", sev:"warn" };
+}
+
+function showToast(title, msg, sev="warn") {
+  const div = document.createElement("div");
+  div.className = `t ${sev}`;
+  div.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="meta">${escapeHtml(msg)}</div>`;
+  toast.appendChild(div);
+  setTimeout(()=> div.remove(), 7000);
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m]));
+}
+
+function notify(title, body) {
+  showToast(title, body, "warn");
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  try { new Notification(title, { body }); } catch {}
+}
+
+function refreshDebug() {
+  dbgInfo.textContent =
+    `Equipos: ${state.equipos.length} | Fallas: ${state.fallas.length} | ` +
+    `Umbral global: ${state.config.thresholdHours} h | Repetir: ${state.config.repeatMinutes} min`;
+}
+
+/* ===========================
+   Render
+   =========================== */
+
+function renderSelects() {
+  const opts = state.equipos.map(e => `<option value="${e.id}">${escapeHtml(e.nombre)}</option>`).join("");
+  fEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
+  dEquipo.innerHTML = fEquipo.innerHTML;
+
+  // filtro equipo
+  const current = qEquipo.value;
+  qEquipo.innerHTML = `<option value="todos">Todos</option>` + (opts || "");
+  if ([...qEquipo.options].some(o => o.value === current)) qEquipo.value = current;
+
+  // si no hay equipo seleccionado en form de falla, set
+  if (!fEquipo.value && state.equipos[0]) fEquipo.value = state.equipos[0].id;
+}
+
+function renderEquipos() {
+  tbEquipos.innerHTML = state.equipos.map(eq => `
+    <tr>
+      <td><strong>${escapeHtml(eq.nombre)}</strong><div class="muted">${escapeHtml(eq.serie || "")}</div></td>
+      <td>${escapeHtml(eq.area || "-")}</td>
+      <td>${escapeHtml(eq.modelo || "-")}</td>
+      <td class="right">
+        <div class="actions">
+          <button class="small" data-act="editEq" data-id="${eq.id}">Editar</button>
+          <button class="small danger" data-act="delEq" data-id="${eq.id}">Eliminar</button>
+        </div>
+      </td>
+    </tr>
+  `).join("") || `<tr><td colspan="4" class="muted">No hay equipos todavía.</td></tr>`;
+}
+
+function filteredFallas() {
+  const text = qBuscar.value.trim().toLowerCase();
+  const est = qEstado.value;
+  const eq = qEquipo.value;
+  const soloA = qSoloAlertas.value === "si";
+
+  let arr = [...state.fallas];
+
+  // Estado
+  if (est === "pendientes") arr = arr.filter(f => !f.resuelta);
+  if (est === "solucionadas") arr = arr.filter(f => f.resuelta);
+
+  // Equipo
+  if (eq !== "todos") arr = arr.filter(f => f.equipoId === eq);
+
+  // Texto
+  if (text) {
+    arr = arr.filter(f => {
+      const hay = [
+        getEquipoName(f.equipoId),
+        f.titulo, f.detalle,
+        (f.comentarios||[]).map(c => c.text).join(" ")
+      ].join(" ").toLowerCase();
+      return hay.includes(text);
+    });
+  }
+
+  // Solo alertas
+  if (soloA) {
+    arr = arr.filter(f => {
+      if (f.resuelta) return false;
+      const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
+      return hoursSince(f.occurredAt) >= th;
+    });
+  }
+
+  // Orden
+  const ord = qOrden.value;
+  if (ord === "recientes") arr.sort((a,b)=> new Date(b.occurredAt)-new Date(a.occurredAt));
+  if (ord === "antiguas") arr.sort((a,b)=> new Date(a.occurredAt)-new Date(b.occurredAt));
+  if (ord === "mas_atrasadas") {
+    arr.sort((a,b)=>{
+      const aKey = a.resuelta ? -1 : hoursSince(a.occurredAt);
+      const bKey = b.resuelta ? -1 : hoursSince(b.occurredAt);
+      return bKey - aKey;
+    });
+  }
+
+  return arr;
+}
+
+function renderFallas() {
+  const pend = state.fallas.filter(f => !f.resuelta).length;
+  badgePendientes.textContent = `Pendientes: ${pend}`;
+  badgePendientes.className = "badge " + (pend === 0 ? "b-ok" : "b-warn");
+
+  const arr = filteredFallas();
+  lblConteo.textContent = `${arr.length} registro(s) mostrado(s)`;
+
+  tbFallas.innerHTML = arr.map(f => {
+    const cls = classifyDelay(f);
+    const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
+    const h = hoursSince(f.occurredAt);
+    const atras = f.resuelta ? "-" : `${h.toFixed(1)} h (umbral ${th} h)`;
+
+    return `
+      <tr>
+        <td><span class="badge ${cls.cls}">${escapeHtml(cls.label)}</span></td>
+        <td><strong>${escapeHtml(getEquipoName(f.equipoId))}</strong></td>
+        <td>
+          <strong>${escapeHtml(f.titulo || "(Sin título)")}</strong>
+          <div class="muted">${escapeHtml((f.detalle||"").slice(0,90))}${(f.detalle||"").length>90?"…":""}</div>
+        </td>
+        <td>${escapeHtml(fmtDateTime(f.occurredAt))}</td>
+        <td>${escapeHtml(atras)}</td>
+        <td class="right">
+          <div class="actions">
+            <button class="small" data-act="editF" data-id="${f.id}">Editar</button>
+            ${f.resuelta
+              ? `<button class="small" data-act="reopenF" data-id="${f.id}">Reabrir</button>`
+              : `<button class="small good" data-act="solveF" data-id="${f.id}">Marcar solucionada</button>`
+            }
+            <button class="small danger" data-act="delF" data-id="${f.id}">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("") || `<tr><td colspan="6" class="muted">No hay fallas con esos filtros.</td></tr>`;
+}
+
+function renderAll() {
+  renderSelects();
+  renderEquipos();
+  renderFallas();
+  cfgUmbral.value = state.config.thresholdHours;
+  cfgRepetir.value = state.config.repeatMinutes;
+  if (!fFecha.value) fFecha.value = nowLocalISO();
+  refreshDebug();
+}
+
+/* ===========================
+   Tabs
+   =========================== */
+tabs.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    tabs.forEach(t=>t.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.dataset.tab;
+    Object.values(panes).forEach(p=> p.style.display="none");
+    panes[tab].style.display = "";
+  });
+});
+
+/* ===========================
+   Acciones: Crear/Editar
+   =========================== */
+
+btnAutofecha.addEventListener("click", ()=> fFecha.value = nowLocalISO());
+
+btnCrearEquipo.addEventListener("click", ()=>{
+  const nombre = eNombre.value.trim();
+  if (!nombre) return showToast("Falta el nombre del equipo", "Escribe un nombre para guardar.", "bad");
+  state.equipos.push({
+    id: uid("eq"),
+    nombre,
+    area: eArea.value.trim(),
+    modelo: eModelo.value.trim(),
+    serie: eSerie.value.trim(),
+    notas: eNotas.value.trim()
+  });
+  eNombre.value = eArea.value = eModelo.value = eSerie.value = "";
+  eNotas.value = "";
+  saveState();
+  renderAll();
+  showToast("Equipo guardado", nombre, "good");
+});
+
+btnCrearFalla.addEventListener("click", ()=>{
+  if (!state.equipos.length) return showToast("Primero crea un equipo", "Ve a la pestaña Equipos.", "bad");
+  const equipoId = fEquipo.value;
+  const titulo = fTitulo.value.trim();
+  const dt = parseDateTimeLocal(fFecha.value);
+  if (!dt) return showToast("Fecha/hora inválida", "Revisa la fecha/hora de la falla.", "bad");
+
+  const umbralRaw = fUmbral.value.trim();
+  const thresholdHours = umbralRaw === "" ? null : Number(umbralRaw);
+  if (umbralRaw !== "" && (!isFinite(thresholdHours) || thresholdHours < 0)) {
+    return showToast("Umbral inválido", "Debe ser un número >= 0.", "bad");
+  }
+
+  state.fallas.push({
+    id: uid("fa"),
+    equipoId,
+    titulo,
+    detalle: fDetalle.value.trim(),
+    occurredAt: dt.toISOString(),
+    thresholdHours: thresholdHours === null ? undefined : thresholdHours,
+    resuelta: false,
+    resolvedAt: null,
+    solucionNotas: "",
+    comentarios: [],
+    lastNotifiedAt: null,
+    createdAt: new Date().toISOString()
+  });
+
+  fTitulo.value = "";
+  fDetalle.value = "";
+  fUmbral.value = "";
+  fFecha.value = nowLocalISO();
+
+  saveState();
+  renderFallas();
+  showToast("Falla registrada", `${getEquipoName(equipoId)} • ${titulo || "Sin título"}`, "good");
+});
+
+function openFallaDialog(f) {
+  editingFallaId = f.id;
+  dEquipo.value = f.equipoId;
+  dTitulo.value = f.titulo || "";
+  // datetime-local: convertir ISO a local YYYY-MM-DDTHH:mm
+  const d = new Date(f.occurredAt);
+  const pad = n => String(n).padStart(2,"0");
+  const localVal = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  dFecha.value = localVal;
+  dUmbral.value = (typeof f.thresholdHours === "number") ? f.thresholdHours : "";
+  dDetalle.value = f.detalle || "";
+  dEstado.value = f.resuelta ? "solucionada" : "pendiente";
+  dSolucion.value = f.solucionNotas || "";
+  renderComentarios(f);
+  dlgFalla.showModal();
+}
+
+function renderComentarios(f) {
+  const list = (f.comentarios||[]).slice().sort((a,b)=> new Date(b.at)-new Date(a.at));
+  dComentariosInfo.textContent = list.length ? `${list.length} comentario(s)` : "Sin comentarios.";
+  dComentariosLista.innerHTML = list.map(c => `
+    <div class="card" style="margin:8px 0; background: rgba(2,6,23,.25)">
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
+        <div><strong>${escapeHtml(fmtDateTime(c.at))}</strong></div>
+        <button class="small danger" data-act="delCom" data-id="${f.id}" data-cid="${c.id}">Eliminar</button>
+      </div>
+      <div class="muted" style="margin-top:6px; white-space: pre-wrap;">${escapeHtml(c.text)}</div>
+    </div>
+  `).join("");
+}
+
+btnAddComentario.addEventListener("click", ()=>{
+  const text = dNuevoComentario.value.trim();
+  if (!text) return showToast("Comentario vacío", "Escribe algo antes de agregar.", "bad");
+  const f = state.fallas.find(x => x.id === editingFallaId);
+  if (!f) return;
+  f.comentarios.push({ id: uid("c"), at: new Date().toISOString(), text });
+  dNuevoComentario.value = "";
+  saveState();
+  renderComentarios(f);
+  showToast("Comentario agregado", "Se guardó en el historial.", "good");
+});
+
+btnGuardarFallaEdit.addEventListener("click", ()=>{
+  const f = state.fallas.find(x => x.id === editingFallaId);
+  if (!f) return;
+
+  const dt = parseDateTimeLocal(dFecha.value);
+  if (!dt) return showToast("Fecha/hora inválida", "Revisa la fecha/hora.", "bad");
+
+  const umbralRaw = dUmbral.value.trim();
+  const thresholdHours = umbralRaw === "" ? null : Number(umbralRaw);
+  if (umbralRaw !== "" && (!isFinite(thresholdHours) || thresholdHours < 0)) {
+    return showToast("Umbral inválido", "Debe ser un número >= 0.", "bad");
+  }
+
+  f.equipoId = dEquipo.value;
+  f.titulo = dTitulo.value.trim();
+  f.detalle = dDetalle.value.trim();
+  f.occurredAt = dt.toISOString();
+  if (thresholdHours === null) delete f.thresholdHours; else f.thresholdHours = thresholdHours;
+
+  const wantSolved = dEstado.value === "solucionada";
+  if (wantSolved && !f.resuelta) f.resolvedAt = new Date().toISOString();
+  if (!wantSolved) f.resolvedAt = null;
+  f.resuelta = wantSolved;
+  f.solucionNotas = dSolucion.value.trim();
+
+  // si se reabre, permitir avisos otra vez
+  if (!f.resuelta) f.lastNotifiedAt = null;
+
+  saveState();
+  renderFallas();
+  dlgFalla.close();
+  showToast("Cambios guardados", "Se actualizó la falla.", "good");
+});
+
+btnCerrarDlg.addEventListener("click", ()=> dlgFalla.close());
+
+function openEquipoDialog(eq) {
+  editingEquipoId = eq.id;
+  deNombre.value = eq.nombre || "";
+  deArea.value = eq.area || "";
+  deModelo.value = eq.modelo || "";
+  deSerie.value = eq.serie || "";
+  deNotas.value = eq.notas || "";
+  dlgEquipo.showModal();
+}
+
+btnGuardarEquipoEdit.addEventListener("click", ()=>{
+  const eq = state.equipos.find(x => x.id === editingEquipoId);
+  if (!eq) return;
+  const nombre = deNombre.value.trim();
+  if (!nombre) return showToast("Falta el nombre", "No puede quedar vacío.", "bad");
+  eq.nombre = nombre;
+  eq.area = deArea.value.trim();
+  eq.modelo = deModelo.value.trim();
+  eq.serie = deSerie.value.trim();
+  eq.notas = deNotas.value.trim();
+  saveState();
+  renderAll();
+  dlgEquipo.close();
+  showToast("Equipo actualizado", nombre, "good");
+});
+
+btnCerrarDlgEq.addEventListener("click", ()=> dlgEquipo.close());
+
+/* ===========================
+   Delegación de eventos (tablas)
+   =========================== */
+document.addEventListener("click", (ev)=>{
+  const b = ev.target.closest("button");
+  if (!b) return;
+  const act = b.dataset.act;
+  const id = b.dataset.id;
+  if (!act) return;
+
+  if (act === "editF") {
+    const f = state.fallas.find(x => x.id === id);
+    if (f) openFallaDialog(f);
+  }
+  if (act === "solveF") {
+    const f = state.fallas.find(x => x.id === id);
+    if (!f) return;
+    f.resuelta = true;
+    f.resolvedAt = new Date().toISOString();
+    saveState(); renderFallas();
+    showToast("Marcada como solucionada", `${getEquipoName(f.equipoId)} • ${f.titulo||"Sin título"}`, "good");
+  }
+  if (act === "reopenF") {
+    const f = state.fallas.find(x => x.id === id);
+    if (!f) return;
+    f.resuelta = false;
+    f.resolvedAt = null;
+    f.lastNotifiedAt = null;
+    saveState(); renderFallas();
+    showToast("Falla reabierta", `${getEquipoName(f.equipoId)} • ${f.titulo||"Sin título"}`, "warn");
+  }
+  if (act === "delF") {
+    const f = state.fallas.find(x => x.id === id);
+    if (!f) return;
+    if (!confirm("¿Eliminar esta falla?")) return;
+    state.fallas = state.fallas.filter(x => x.id !== id);
+    saveState(); renderFallas();
+    showToast("Falla eliminada", "Se eliminó del historial.", "good");
+  }
+
+  if (act === "editEq") {
+    const eq = state.equipos.find(x => x.id === id);
+    if (eq) openEquipoDialog(eq);
+  }
+  if (act === "delEq") {
+    const eq = state.equipos.find(x => x.id === id);
+    if (!eq) return;
+    if (!confirm(`¿Eliminar equipo "${eq.nombre}"?`)) return;
+    state.equipos = state.equipos.filter(x => x.id !== id);
+    saveState(); renderAll();
+    showToast("Equipo eliminado", eq.nombre, "good");
+  }
+
+  if (act === "delCom") {
+    const fallaId = b.dataset.id;
+    const cid = b.dataset.cid;
+    const f = state.fallas.find(x => x.id === fallaId);
+    if (!f) return;
+    if (!confirm("¿Eliminar este comentario?")) return;
+    f.comentarios = (f.comentarios||[]).filter(c => c.id !== cid);
+    saveState();
+    renderComentarios(f);
+    showToast("Comentario eliminado", "Se actualizó el historial.", "good");
+  }
+});
+
+/* ===========================
+   Filtros (re-render)
+   =========================== */
+[qBuscar, qEstado, qEquipo, qOrden, qSoloAlertas].forEach(el => el.addEventListener("input", renderFallas));
+[qEstado, qEquipo, qOrden, qSoloAlertas].forEach(el => el.addEventListener("change", renderFallas));
+
+/* ===========================
+   Config / Notifs
+   =========================== */
+
+btnGuardarCfg.addEventListener("click", ()=>{
+  const th = Number(cfgUmbral.value);
+  const rep = Number(cfgRepetir.value);
+  if (!isFinite(th) || th < 0) return showToast("Umbral inválido", "Debe ser número >= 0.", "bad");
+  if (!isFinite(rep) || rep < 1) return showToast("Repetición inválida", "Debe ser mínimo 1 minuto.", "bad");
+  state.config.thresholdHours = th;
+  state.config.repeatMinutes = rep;
+  saveState();
+  renderAll();
+  showToast("Configuración guardada", `Umbral ${th} h • Repetir ${rep} min`, "good");
+});
+
+btnPermisoNotif.addEventListener("click", async ()=>{
+  if (!("Notification" in window)) {
+    return showToast("No disponible", "Este navegador no soporta notificaciones.", "bad");
+  }
+  try {
+    const p = await Notification.requestPermission();
+    if (p === "granted") showToast("Listo", "Notificaciones activadas.", "good");
+    else showToast("Permiso no concedido", "Puedes usar avisos en pantalla igualmente.", "warn");
+  } catch {
+    showToast("Error", "No se pudo solicitar permiso.", "bad");
+  }
+});
+
+btnTestAviso.addEventListener("click", ()=>{
+  notify("Prueba de aviso", "Esto es un aviso de prueba del Control de Fallas.");
+});
+
+btnResetDemo.addEventListener("click", ()=>{
+  if (!confirm("¿Seguro? Esto borrará equipos y fallas.")) return;
+  localStorage.removeItem(STORE_KEY);
+  state = defaultState();
+  saveState();
+  renderAll();
+  showToast("Listo", "Se borró todo.", "good");
+});
+
+/* ===========================
+   Export / Import
+   =========================== */
+btnExportar.addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `control_fallas_respaldo_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast("Exportado", "Se descargó el respaldo JSON.", "good");
+});
+
+btnImportar.addEventListener("click", ()=> fileImport.click());
+
+fileImport.addEventListener("change", async ()=>{
+  const file = fileImport.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const imported = JSON.parse(text);
+    state = normalizeState(imported);
+    saveState();
+    renderAll();
+    showToast("Importado", "Respaldo restaurado correctamente.", "good");
+  } catch {
+    showToast("Error", "El archivo no es un JSON válido.", "bad");
+  } finally {
+    fileImport.value = "";
+  }
+});
+
+/* ===========================
+   Motor de avisos
+   =========================== */
+function checkAlerts() {
+  const repeatMs = state.config.repeatMinutes * 60 * 1000;
+  let any = false;
+
+  for (const f of state.fallas) {
+    if (f.resuelta) continue;
+
+    const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
+    if (th <= 0) continue;
+
+    const h = hoursSince(f.occurredAt);
+    if (h < th) continue;
+
+    any = true;
+    const last = f.lastNotifiedAt ? new Date(f.lastNotifiedAt).getTime() : 0;
+    const due = (Date.now() - last) >= repeatMs;
+
+    if (due) {
+      f.lastNotifiedAt = new Date().toISOString();
+      saveState();
+      const equipo = getEquipoName(f.equipoId);
+      const title = `ALERTA: Falla pendiente (${h.toFixed(1)} h)`;
+      const body = `${equipo} • ${f.titulo || "Sin título"}`;
+      notify(title, body);
     }
+  }
 
-    function filtrar() {
-      const sap = document.getElementById("buscarSAP").value.toLowerCase();
-      const nombre = document.getElementById("buscarNombre").value.toLowerCase();
-      if (sap === "" && nombre === "") {
-        document.getElementById("resultados").innerHTML = "";
-        document.getElementById("contador").innerHTML = "";
-        return;
-      }
-      const filtrados = datosEquipos.filter(item => 
-        (sap === "" || (item["Codigo SAP"]+"" ).toLowerCase().includes(sap)) &&
-        (nombre === "" || (item["NOMBRE DEL EQUIPO"] || "").toLowerCase().includes(nombre))
-      );
-      mostrarResultados(filtrados);
-    }
+  // Visual hint
+  document.title = any ? "⚠ Control de Fallas" : "Control de Fallas";
+}
 
-    function actualizarFechaHora() {
-      const ahora = new Date();
-      const opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second:'2-digit' };
-      document.getElementById("fecha-hora").innerText = ahora.toLocaleDateString("es-ES", opciones);
-    }
+setInterval(checkAlerts, 60 * 1000); // cada minuto
+// primera corrida al cargar
+setTimeout(checkAlerts, 800);
 
-    function cambiarResponsable() {
-      const nuevo = prompt("Ingrese el nuevo responsable:");
-      if (nuevo) {
-        document.getElementById("responsable").innerText = nuevo;
-        localStorage.setItem("responsable", nuevo);
-      }
-    }
-
-    // Lector QR
-    function abrirQR() {
-      document.getElementById("lectorQR").style.display = "block";
-      const html5QrCode = new Html5Qrcode("lectorQR");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        qrCodeMessage => {
-          document.getElementById("buscarSAP").value = qrCodeMessage;
-          filtrar();
-          html5QrCode.stop();
-          document.getElementById("lectorQR").style.display = "none";
-        },
-        errorMessage => {}
-      ).catch(err => {
-        console.error("Error al iniciar QR: ", err);
-      });
-    }
-
-    window.onload = () => {
-      document.getElementById("buscarSAP").addEventListener("input", filtrar);
-      document.getElementById("buscarNombre").addEventListener("input", filtrar);
-      const guardado = localStorage.getItem("responsable");
-      if (guardado) document.getElementById("responsable").innerText = guardado;
-      setInterval(actualizarFechaHora, 1000);
-      actualizarFechaHora();
-    };
-  </script>
+/* ===========================
+   Init
+   =========================== */
+fFecha.value = nowLocalISO();
+renderAll();
+</script>
 </body>
 </html>
