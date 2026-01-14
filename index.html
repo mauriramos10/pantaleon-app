@@ -1,1439 +1,1001 @@
-```html
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Control de Fallas</title>
-  <style>
-    :root { --b:#111827; --g:#6b7280; --bg:#0b1220; --card:#111a2e; --line:#22304f; --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444; }
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    body { margin:0; background: linear-gradient(180deg,#070b14,#0b1220 40%, #070b14); color:#e5e7eb; }
-    header { position: sticky; top:0; backdrop-filter: blur(10px); background: rgba(11,18,32,.7); border-bottom:1px solid rgba(34,48,79,.7); z-index:10; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 14px 22px; }
-    h1 { font-size: 18px; margin: 0; display:flex; align-items:center; gap:10px; }
-    .pill { font-size: 12px; color:#cbd5e1; padding:4px 10px; border:1px solid rgba(34,48,79,.9); border-radius:999px; background: rgba(17,26,46,.6); }
-    nav { display:flex; gap:8px; margin-top: 10px; flex-wrap: wrap; }
-    .tab { border:1px solid rgba(34,48,79,.9); background: rgba(17,26,46,.55); color:#e5e7eb; padding:8px 10px; border-radius: 10px; cursor:pointer; font-weight: 600; }
-    .tab.active { outline: 2px solid rgba(99,102,241,.6); }
-    .row { display:grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
-    @media (min-width: 900px) { .row.two { grid-template-columns: 1.2fr .8fr; } }
-    .card { background: rgba(17,26,46,.7); border: 1px solid rgba(34,48,79,.9); border-radius: 14px; padding: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
-    .card h2 { margin:0 0 10px; font-size: 15px; color:#e2e8f0; display:flex; align-items:center; justify-content: space-between; gap:10px; }
-    .muted { color:#94a3b8; font-size: 12px; }
-    .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
-    @media (min-width: 700px) { .grid.cols2 { grid-template-columns: 1fr 1fr; } }
-    label { display:block; font-size: 12px; color:#cbd5e1; margin-bottom: 6px; }
-    input, select, textarea { width: 100%; padding: 10px; border-radius: 10px; border:1px solid rgba(34,48,79,.9); background: rgba(2,6,23,.5); color:#e5e7eb; }
-    textarea { min-height: 90px; resize: vertical; }
-    .btns { display:flex; gap:8px; flex-wrap: wrap; }
-    button { border:1px solid rgba(34,48,79,.9); background: rgba(2,6,23,.35); color:#e5e7eb; padding: 9px 12px; border-radius: 10px; cursor:pointer; font-weight: 700; }
-    button.primary { background: rgba(99,102,241,.25); border-color: rgba(99,102,241,.6); }
-    button.good { background: rgba(34,197,94,.18); border-color: rgba(34,197,94,.55); }
-    button.danger { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.55); }
-    button:disabled { opacity:.5; cursor:not-allowed; }
-    table { width:100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 10px 8px; border-bottom: 1px solid rgba(34,48,79,.7); vertical-align: top; }
-    th { text-align: left; color:#cbd5e1; font-size: 12px; font-weight: 800; }
-    .badge { display:inline-flex; align-items:center; gap:6px; font-size: 12px; padding:4px 8px; border-radius: 999px; border: 1px solid rgba(34,48,79,.9); background: rgba(2,6,23,.35); }
-    .b-ok { border-color: rgba(34,197,94,.6); }
-    .b-warn { border-color: rgba(245,158,11,.7); }
-    .b-bad { border-color: rgba(239,68,68,.7); }
-    .right { text-align:right; }
-    .actions { display:flex; gap:6px; flex-wrap: wrap; justify-content: flex-end; }
-    .small { padding:6px 8px; font-size: 12px; border-radius: 10px; }
-    .toast { position: fixed; right: 14px; bottom: 14px; max-width: 360px; z-index: 9999; display:flex; flex-direction: column; gap:8px; }
-    .toast .t { background: rgba(17,26,46,.92); border: 1px solid rgba(34,48,79,.9); border-left-width: 6px; border-radius: 12px; padding: 10px; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
-    .t.good { border-left-color: var(--ok); }
-    .t.warn { border-left-color: var(--warn); }
-    .t.bad { border-left-color: var(--bad); }
-    .t .title { font-weight: 900; margin-bottom: 4px; }
-    .t .meta { color:#94a3b8; font-size: 12px; }
-    dialog { border:none; border-radius: 16px; padding:0; max-width: 720px; width: calc(100% - 24px); background: rgba(17,26,46,.98); color:#e5e7eb; box-shadow: 0 25px 60px rgba(0,0,0,.6); }
-    dialog::backdrop { background: rgba(0,0,0,.55); }
-    .dlg { padding: 12px; border:1px solid rgba(34,48,79,.9); border-radius: 16px; }
-    .dlg h3 { margin: 0 0 10px; font-size: 15px; }
-    .hr { height:1px; background: rgba(34,48,79,.7); margin: 10px 0; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; }
+  <title>MTBF / MTTR - Control de Fallas y Reparaciones</title>
 
-    /* Autocomplete propio (móvil friendly) */
-    .acWrap { position: relative; }
-    .acList {
-      position: absolute;
-      left: 0; right: 0;
-      top: calc(100% + 6px);
-      z-index: 999;
-      display: none;
-      max-height: 260px;
-      overflow: auto;
+  <!-- Chart.js (para gráficas) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg0:#070b14; --bg1:#0b1220; --card:#111a2e; --line:#22304f;
+      --text:#e5e7eb; --muted:#9ca3af; --accent:#60a5fa;
+      --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+      --chip:#0f172a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    body{
+      margin:0; color:var(--text);
+      background: linear-gradient(180deg,var(--bg0),var(--bg1) 40%, var(--bg0));
+    }
+    header{
+      position:sticky; top:0; z-index:5;
+      backdrop-filter: blur(10px);
+      background: rgba(11,18,32,.75);
+      border-bottom:1px solid rgba(34,48,79,.6);
+    }
+    .wrap{ max-width: 1200px; margin: 0 auto; padding: 14px 16px; }
+    .title{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo{
+      width:42px; height:42px; border-radius: 12px;
+      background: radial-gradient(circle at 30% 30%, #93c5fd, #2563eb 60%, #111a2e);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    h1{ font-size: 16px; margin:0; letter-spacing:.2px; }
+    .sub{ color: var(--muted); font-size: 12px; margin-top:2px; }
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+    button, .btn{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(17,26,46,.85);
+      color:var(--text);
+      padding:10px 12px;
       border-radius: 12px;
-      border: 1px solid rgba(34,48,79,.9);
-      background: rgba(2,6,23,.95);
-      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+      cursor:pointer;
+      transition: .15s transform, .15s background, .15s border;
+      font-weight:600;
+      font-size: 13px;
     }
-    .acItem {
-      width: 100%;
-      text-align: left;
+    button:hover, .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(96,165,250,.5);
+      background: rgba(17,26,46,1);
+    }
+    button.primary{
+      background: linear-gradient(135deg, rgba(96,165,250,.18), rgba(37,99,235,.18));
+      border-color: rgba(96,165,250,.45);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap: 14px;
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: rgba(17,26,46,.72);
+      border:1px solid rgba(34,48,79,.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card h2{
+      font-size: 14px;
+      margin:0;
+      padding: 14px 14px 10px 14px;
+      border-bottom: 1px solid rgba(34,48,79,.65);
+    }
+    .card .content{ padding: 14px; }
+
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .form .full{ grid-column: 1 / -1; }
+    label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input, select, textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(15,23,42,.7);
+      color: var(--text);
+      outline:none;
+    }
+    textarea{ min-height: 86px; resize: vertical; }
+    .row{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .hint{
+      font-size: 12px; color: var(--muted);
+    }
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      background: rgba(15,23,42,.75);
+      border:1px solid rgba(255,255,255,.08);
+      padding:8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text);
+      display:flex; gap:8px; align-items:baseline;
+    }
+    .chip b{ font-size: 14px; }
+    .chip .k{ color: var(--muted); font-weight:600; font-size: 11px; }
+    .chip.ok b{ color: var(--ok); }
+    .chip.warn b{ color: var(--warn); }
+    .chip.bad b{ color: var(--bad); }
+
+    .tableWrap{ overflow:auto; border-radius: 14px; border:1px solid rgba(34,48,79,.7); }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      background: rgba(15,23,42,.55);
+    }
+    th, td{
+      text-align:left;
       padding: 10px 10px;
-      border: none;
-      border-bottom: 1px solid rgba(34,48,79,.5);
-      background: transparent;
-      color: #e5e7eb;
-      cursor: pointer;
-      font-weight: 700;
+      border-bottom: 1px solid rgba(34,48,79,.55);
+      font-size: 12px;
+      vertical-align: top;
     }
-    .acItem:hover { background: rgba(99,102,241,.15); }
-    .acItem .mut { display:block; font-weight: 500; color:#94a3b8; font-size: 12px; margin-top:2px; }
+    th{ color: var(--muted); font-size: 11px; letter-spacing:.3px; text-transform: uppercase; }
+    tr:hover td{ background: rgba(17,26,46,.35); }
+    .pill{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(17,26,46,.7);
+      font-weight:700;
+      font-size: 11px;
+    }
+    .pill.ok{ border-color: rgba(34,197,94,.4); color: var(--ok); }
+    .pill.warn{ border-color: rgba(245,158,11,.45); color: var(--warn); }
+    .pill.bad{ border-color: rgba(239,68,68,.45); color: var(--bad); }
+
+    .smallBtns{ display:flex; gap:8px; }
+    .small{
+      padding: 6px 8px; border-radius: 10px; font-size: 12px;
+    }
+    .danger{ border-color: rgba(239,68,68,.45); }
+    .danger:hover{ border-color: rgba(239,68,68,.75); }
+
+    .sectionTitle{
+      display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;
+      margin: 10px 0 12px 0;
+    }
+    .sectionTitle .left{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .kpiNote{ font-size: 12px; color: var(--muted); }
+    .split{
+      display:grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 980px){ .split{ grid-template-columns:1fr; } }
+    .canvasBox{
+      background: rgba(15,23,42,.55);
+      border: 1px solid rgba(34,48,79,.7);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    footer{
+      color: var(--muted);
+      font-size: 12px;
+      padding: 10px 16px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    code.inline{
+      background: rgba(15,23,42,.75);
+      border:1px solid rgba(255,255,255,.08);
+      padding:2px 6px;
+      border-radius: 8px;
+      color: #c7d2fe;
+    }
+    .muted{ color: var(--muted); }
   </style>
 </head>
 <body>
+
 <header>
   <div class="wrap">
-    <h1>Control de Fallas <span class="pill" id="pillStatus">Guardado local</span></h1>
-    <nav>
-      <button class="tab active" data-tab="fallas">Fallas</button>
-      <button class="tab" data-tab="equipos">Equipos</button>
-      <button class="tab" data-tab="alertas">Alertas / Respaldo</button>
-    </nav>
+    <div class="title">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>MTBF / MTTR · Control de Fallas y Reparaciones</h1>
+          <div class="sub">Registro, métricas y gráficas para evaluar calidad de mantenimiento y desempeño de mecánicos</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="btnExport">Exportar JSON</button>
+        <label class="btn" for="fileImport" style="display:inline-flex;align-items:center;gap:8px;">
+          Importar JSON
+          <input id="fileImport" type="file" accept="application/json" style="display:none">
+        </label>
+        <button class="btn danger" id="btnReset">Borrar TODO</button>
+      </div>
+    </div>
   </div>
 </header>
 
-<main class="wrap">
-  <!-- FALLAS -->
-  <section id="tab-fallas" class="tabpane">
-    <div class="row two">
-      <div class="card">
-        <h2>
-          <span>Registrar falla</span>
-          <span class="muted">Fecha/hora local (Guatemala)</span>
-        </h2>
+<div class="grid">
 
-        <div class="grid cols2">
-          <div>
-            <label>Equipo</label>
-
-            <div class="acWrap">
-              <input id="fEquipoTxt" placeholder="Escribe código o nombre (ej: 10010416)" autocomplete="off" />
-              <input type="hidden" id="fEquipo" />
-              <div id="fEquipoSug" class="acList"></div>
-            </div>
-
-          </div>
-
-          <div>
-            <label>Tipo / título corto</label>
-            <input id="fTitulo" placeholder="Ej: Banda se desliza / Motor no arranca" />
-          </div>
-
-          <div>
-            <label>Fecha y hora de la falla</label>
-            <input id="fFecha" type="datetime-local" />
-          </div>
-
-          <div>
-            <label>Umbral aviso (horas) (opcional)</label>
-            <input id="fUmbral" type="number" min="0" step="0.5" placeholder="Vacío = usar configuración global" />
-          </div>
+  <!-- IZQUIERDA: FORM + FILTROS + KPI -->
+  <div class="card">
+    <h2>Registrar Falla / Reparación</h2>
+    <div class="content">
+      <form id="frm" class="form" autocomplete="off">
+        <div class="full">
+          <label>Equipo (ej: Tractor 12, Bomba #3, Reductor 4…)</label>
+          <input id="equipment" required placeholder="Nombre o código del equipo">
         </div>
 
-        <div style="margin-top:10px">
-          <label>Descripción / detalle</label>
-          <textarea id="fDetalle" placeholder="Describe lo ocurrido, síntomas, condiciones, etc."></textarea>
+        <div>
+          <label>Mecánico</label>
+          <input id="mechanic" required placeholder="Nombre del mecánico">
         </div>
 
-        <div class="btns" style="margin-top:10px">
-          <button class="primary" id="btnCrearFalla">Guardar falla</button>
-          <button id="btnAutofecha">Poner fecha/hora actual</button>
+        <div>
+          <label>Severidad</label>
+          <select id="severity">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Alta">Alta</option>
+          </select>
         </div>
-      </div>
 
-      <div class="card">
-        <h2>
-          <span>Filtro rápido</span>
-          <span class="badge" id="badgePendientes">Pendientes: 0</span>
-        </h2>
-        <div class="grid">
-          <div>
-            <label>Buscar (equipo / título / detalle)</label>
-            <input id="qBuscar" placeholder="Escribe para filtrar..." />
-          </div>
-          <div class="grid cols2">
-            <div>
-              <label>Estado</label>
-              <select id="qEstado">
-                <option value="todos">Todos</option>
-                <option value="pendientes">Pendientes</option>
-                <option value="solucionadas">Solucionadas</option>
-              </select>
-            </div>
-            <div>
-              <label>Equipo</label>
-              <select id="qEquipo">
-                <option value="todos">Todos</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid cols2">
-            <div>
-              <label>Orden</label>
-              <select id="qOrden">
-                <option value="recientes">Más recientes</option>
-                <option value="antiguas">Más antiguas</option>
-                <option value="mas_atrasadas">Más atrasadas (pendientes)</option>
-              </select>
-            </div>
-            <div>
-              <label>Solo alertas activas</label>
-              <select id="qSoloAlertas">
-                <option value="no">No</option>
-                <option value="si">Sí</option>
-              </select>
-            </div>
-          </div>
+        <div class="full">
+          <label>Descripción de la falla</label>
+          <textarea id="failureDesc" placeholder="Ej: Fuga en sello, rodamiento recalentado, cadena floja…"></textarea>
+        </div>
 
-          <div class="btns">
-            <button id="btnPermisoNotif">Activar notificaciones</button>
-            <button class="danger" id="btnResetDemo" title="Borra todo">Borrar todo</button>
-          </div>
-          <div class="muted">
-            * Las notificaciones dependen del navegador y permisos. Aunque no se notifique, siempre verás avisos en pantalla.
+        <div>
+          <label>Inicio de falla (equipo detenido)</label>
+          <input id="tFailure" type="datetime-local" required>
+        </div>
+
+        <div>
+          <label>Inicio reparación (cuando empieza a trabajar)</label>
+          <input id="tRepairStart" type="datetime-local">
+        </div>
+
+        <div>
+          <label>Fin reparación (equipo listo)</label>
+          <input id="tRepairEnd" type="datetime-local" required>
+        </div>
+
+        <div>
+          <label>Horas de operación desde última falla (opcional)</label>
+          <input id="opHours" type="number" min="0" step="0.1" placeholder="Ej: 120.5">
+        </div>
+
+        <div class="full">
+          <label>Acción correctiva / Repuestos / Notas</label>
+          <textarea id="notes" placeholder="Ej: Se cambió rodamiento 6308, ajuste de alineación, torque…"></textarea>
+        </div>
+
+        <div class="full row">
+          <button class="primary" type="submit" id="btnSave">Guardar registro</button>
+          <button type="button" id="btnCancel" style="display:none;">Cancelar edición</button>
+          <span class="hint" id="modeHint">Modo: Nuevo</span>
+        </div>
+
+        <div class="full">
+          <div class="hint">
+            Definiciones usadas:
+            <br>• <b>MTTR</b> = promedio de <span class="muted">tiempo de reparación</span> (Fin - Inicio reparación; si no hay inicio reparación, usa Inicio falla).
+            <br>• <b>MTBF</b> = promedio del tiempo entre <span class="muted">inicios de falla consecutivos</span> por equipo.
           </div>
         </div>
-      </div>
+      </form>
     </div>
+  </div>
 
-    <div class="card" style="margin-top:12px">
-      <h2>
-        <span>Historial de fallas</span>
-        <span class="muted" id="lblConteo"></span>
-      </h2>
-      <div style="overflow:auto">
+  <!-- DERECHA: KPI + CHARTS + TABLA -->
+  <div class="card">
+    <h2>Panel de Métricas y Gráficas</h2>
+    <div class="content">
+
+      <!-- FILTROS -->
+      <div class="sectionTitle">
+        <div class="left">
+          <b>Filtros</b>
+          <span class="kpiNote">Afecta KPIs, gráficas y tabla</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="btnQuick7">Últimos 7 días</button>
+          <button class="btn" id="btnQuick30">Últimos 30 días</button>
+          <button class="btn" id="btnQuickAll">Todo</button>
+        </div>
+      </div>
+
+      <div class="form" style="margin-bottom: 10px;">
+        <div>
+          <label>Desde</label>
+          <input id="fFrom" type="date">
+        </div>
+        <div>
+          <label>Hasta</label>
+          <input id="fTo" type="date">
+        </div>
+        <div>
+          <label>Equipo</label>
+          <select id="fEquipment"><option value="">(Todos)</option></select>
+        </div>
+        <div>
+          <label>Mecánico</label>
+          <select id="fMechanic"><option value="">(Todos)</option></select>
+        </div>
+        <div>
+          <label>Agrupar fallas por</label>
+          <select id="fBucket">
+            <option value="day">Día</option>
+            <option value="week" selected>Semana</option>
+            <option value="month">Mes</option>
+          </select>
+        </div>
+        <div class="row" style="align-items:flex-end;">
+          <button class="btn primary" id="btnApply">Aplicar</button>
+          <button class="btn" id="btnClear">Limpiar</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="chips" id="kpis"></div>
+
+      <!-- CHARTS -->
+      <div class="split" style="margin-top: 14px;">
+        <div class="canvasBox">
+          <div class="hint" style="margin: 2px 0 8px;">Fallas en el tiempo (conteo por periodo)</div>
+          <canvas id="chartFailures" height="210"></canvas>
+        </div>
+
+        <div class="canvasBox">
+          <div class="hint" style="margin: 2px 0 8px;">Mecánicos: MTTR promedio vs cantidad de reparaciones</div>
+          <canvas id="chartMechanics" height="210"></canvas>
+        </div>
+      </div>
+
+      <!-- TABLA -->
+      <div class="sectionTitle" style="margin-top: 14px;">
+        <div class="left">
+          <b>Registros</b>
+          <span class="kpiNote">Editar / eliminar desde la tabla</span>
+        </div>
+      </div>
+
+      <div class="tableWrap">
         <table>
           <thead>
             <tr>
-              <th>Estado</th>
               <th>Equipo</th>
-              <th>Falla</th>
-              <th>Fecha/hora</th>
-              <th>Atraso</th>
-              <th class="right">Acciones</th>
+              <th>Mecánico</th>
+              <th>Sev.</th>
+              <th>Inicio falla</th>
+              <th>Inicio rep.</th>
+              <th>Fin rep.</th>
+              <th>Downtime</th>
+              <th>Tiempo rep.</th>
+              <th>MTBF (equipo)</th>
+              <th>Notas</th>
+              <th>Acciones</th>
             </tr>
           </thead>
-          <tbody id="tbFallas"></tbody>
+          <tbody id="tbody"></tbody>
         </table>
       </div>
+
     </div>
-  </section>
+  </div>
 
-  <!-- EQUIPOS -->
-  <section id="tab-equipos" class="tabpane" style="display:none">
-    <div class="row two">
-      <div>
-        <div class="card">
-          <h2>Registrar equipo</h2>
-          <div class="grid cols2">
-            <div>
-              <label>Código de equipo</label>
-              <input id="eCodigo" placeholder="Ej: 10010356" />
-            </div>
-            <div>
-              <label>Denominación</label>
-              <input id="eNombre" placeholder="Ej: TRACTOR JOHN DEERE 8245R" />
-            </div>
-            <div>
-              <label>Área / Frente</label>
-              <input id="eArea" placeholder="Ej: Fertilización / Escarificado / Taller" />
-            </div>
-            <div>
-              <label>Marca / Modelo</label>
-              <input id="eModelo" placeholder="Ej: John Deere 6110 / CASE PUMA 225" />
-            </div>
-            <div>
-              <label>Serie / Placa</label>
-              <input id="eSerie" placeholder="Opcional" />
-            </div>
-          </div>
-          <div style="margin-top:10px">
-            <label>Notas del equipo</label>
-            <textarea id="eNotas" placeholder="Detalles importantes del equipo (capacidad, ubicación, etc.)"></textarea>
-          </div>
-          <div class="btns" style="margin-top:10px">
-            <button class="primary" id="btnCrearEquipo">Guardar equipo</button>
-          </div>
-        </div>
+</div>
 
-        <div class="card" style="margin-top:12px">
-          <h2>Importar equipos pegando lista</h2>
-          <div class="muted">
-            Pega líneas como: <span class="mono">10010356[TAB]TRACTOR AGRICOLA JOHN DEERE D130</span> (también acepta separador por espacios múltiples).
-          </div>
-          <div style="margin-top:10px">
-            <label>Lista (una línea por equipo)</label>
-            <textarea id="eImportText" placeholder="Código[TAB]Denominación"></textarea>
-          </div>
-          <div class="btns" style="margin-top:10px">
-            <button class="primary" id="btnImportEquiposPegado">Importar/Agregar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Listado de equipos</h2>
-        <div class="muted">Puedes editar o eliminar (si eliminas un equipo, sus fallas quedan “huérfanas” y se verán como “Equipo eliminado”).</div>
-        <div class="hr"></div>
-        <div style="overflow:auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Denominación</th>
-                <th>Área</th>
-                <th>Modelo</th>
-                <th class="right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tbEquipos"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ALERTAS / RESPALDO -->
-  <section id="tab-alertas" class="tabpane" style="display:none">
-    <div class="row two">
-      <div class="card">
-        <h2>Configuración de avisos</h2>
-        <div class="grid">
-          <div class="grid cols2">
-            <div>
-              <label>Umbral global (horas)</label>
-              <input id="cfgUmbral" type="number" min="0" step="0.5" />
-              <div class="muted">Si una falla no tiene umbral propio, se usa este.</div>
-            </div>
-            <div>
-              <label>Repetir aviso cada (minutos)</label>
-              <input id="cfgRepetir" type="number" min="1" step="1" />
-              <div class="muted">Evita spam: el sistema espera este tiempo para volver a avisar por la misma falla.</div>
-            </div>
-          </div>
-          <div class="btns">
-            <button class="primary" id="btnGuardarCfg">Guardar configuración</button>
-            <button id="btnTestAviso">Probar aviso</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Respaldo / Exportar</h2>
-        <div class="grid">
-          <div class="btns">
-            <button class="primary" id="btnExportar">Exportar JSON</button>
-            <button id="btnImportar">Importar JSON</button>
-          </div>
-          <div class="muted">
-            Exporta a un archivo para guardarlo en WhatsApp/Drive y poder restaurar si cambias de teléfono.
-          </div>
-          <input id="fileImport" type="file" accept="application/json" style="display:none" />
-        </div>
-        <div class="hr"></div>
-        <div class="muted mono" id="dbgInfo"></div>
-      </div>
-    </div>
-  </section>
-
-  <dialog id="dlgFalla">
-    <div class="dlg">
-      <h3>Editar falla</h3>
-      <div class="grid cols2">
-        <div>
-          <label>Equipo</label>
-          <select id="dEquipo"></select>
-        </div>
-        <div>
-          <label>Título</label>
-          <input id="dTitulo" />
-        </div>
-        <div>
-          <label>Fecha/hora</label>
-          <input id="dFecha" type="datetime-local" />
-        </div>
-        <div>
-          <label>Umbral aviso (horas)</label>
-          <input id="dUmbral" type="number" min="0" step="0.5" placeholder="Vacío = global" />
-        </div>
-      </div>
-
-      <div style="margin-top:10px">
-        <label>Detalle</label>
-        <textarea id="dDetalle"></textarea>
-      </div>
-
-      <div class="grid cols2" style="margin-top:10px">
-        <div>
-          <label>Estado</label>
-          <select id="dEstado">
-            <option value="pendiente">Pendiente</option>
-            <option value="solucionada">Solucionada</option>
-          </select>
-        </div>
-        <div>
-          <label>Notas de solución (si aplica)</label>
-          <input id="dSolucion" placeholder="Ej: se cambió sensor / se ajustó correa..." />
-        </div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div>
-        <h3 style="margin:0 0 6px; font-size:14px;">Comentarios</h3>
-        <div class="muted" id="dComentariosInfo"></div>
-        <div style="margin-top:8px">
-          <label>Nuevo comentario</label>
-          <textarea id="dNuevoComentario" placeholder="Agrega observaciones, repuestos, quién atendió, etc."></textarea>
-          <div class="btns" style="margin-top:8px">
-            <button class="good" id="btnAddComentario">Agregar comentario</button>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-        <div id="dComentariosLista"></div>
-      </div>
-
-      <div class="btns" style="margin-top:12px; justify-content:flex-end">
-        <button id="btnCerrarDlg">Cerrar</button>
-        <button class="primary" id="btnGuardarFallaEdit">Guardar cambios</button>
-      </div>
-    </div>
-  </dialog>
-
-  <dialog id="dlgEquipo">
-    <div class="dlg">
-      <h3>Editar equipo</h3>
-      <div class="grid cols2">
-        <div>
-          <label>Código</label>
-          <input id="deCodigo" />
-        </div>
-        <div>
-          <label>Denominación</label>
-          <input id="deNombre" />
-        </div>
-        <div>
-          <label>Área</label>
-          <input id="deArea" />
-        </div>
-        <div>
-          <label>Marca / Modelo</label>
-          <input id="deModelo" />
-        </div>
-        <div>
-          <label>Serie / Placa</label>
-          <input id="deSerie" />
-        </div>
-      </div>
-      <div style="margin-top:10px">
-        <label>Notas</label>
-        <textarea id="deNotas"></textarea>
-      </div>
-      <div class="btns" style="margin-top:12px; justify-content:flex-end">
-        <button id="btnCerrarDlgEq">Cerrar</button>
-        <button class="primary" id="btnGuardarEquipoEdit">Guardar cambios</button>
-      </div>
-    </div>
-  </dialog>
-
-</main>
-
-<div class="toast" id="toast"></div>
+<footer>
+  <div class="wrap" style="padding:0;">
+    Todo se guarda en tu navegador (<code class="inline">localStorage</code>). Para usarlo en otro dispositivo, exporta JSON y luego impórtalo.
+  </div>
+</footer>
 
 <script>
-/* ===========================
-   Control de Fallas (local)
-   =========================== */
+/* =========================
+   UTILIDADES
+========================= */
+const LS_KEY = "mtbf_mttr_records_v1";
 
-const STORE_KEY = "controlFallas.v1";
+function uid(){
+  return "r_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
 
-const PRELOAD_EQUIPOS = [
-  { codigo:"10010356", denominacion:"TRACTOR AGRICOLA JOHN DEERE D130" },
-  { codigo:"10010357", denominacion:"TRACTOR AGRICOLA JOHN DEERE D130" },
-  { codigo:"10010125", denominacion:"TRACTOR AGRICOLA JOHN DEERE 5615" },
-  { codigo:"10130021", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130022", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130025", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130030", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130031", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130032", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130033", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130034", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130035", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130241", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130419", denominacion:"ESCARIFICADOR DE  4 CINCELES" },
-  { codigo:"11130006", denominacion:"ESCARIFICADOR" },
-  { codigo:"11130007", denominacion:"ESCARIFICADOR" },
-  { codigo:"10130439", denominacion:"SUBSOLADOR" },
-  { codigo:"10130440", denominacion:"SUBSOLADOR" },
-  { codigo:"10130443", denominacion:"SUBSOLADOR" },
-  { codigo:"10130051", denominacion:"FERTILIZADORA ABONO GRANULADO" },
-  { codigo:"10130027", denominacion:"ESCARIFICADOR" },
-  { codigo:"10010416", denominacion:"TRACTOR JOHN DEERE 8245R" },
-  { codigo:"10010508", denominacion:"TRACTOR JOHN DEERE 7210R" },
-  { codigo:"10010506", denominacion:"TRACTOR JOHN DEERE 7210R" },
-  { codigo:"10010415", denominacion:"TRACTOR JOHN DEERE 8245R" },
-  { codigo:"10010511", denominacion:"TRACTOR JOHN DEERE 7210R" },
-  { codigo:"10010429", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
-  { codigo:"10010430", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
-  { codigo:"10010434", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
-  { codigo:"10010447", denominacion:"TRACTOR JOHN DEERE 6155J DT" },
-  { codigo:"10010503", denominacion:"TRACTOR JOHN DEERE 7210R" },
-  { codigo:"10130350", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130351", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130352", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130353", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130405", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
-  { codigo:"10130452", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
-  { codigo:"10130430", denominacion:"TANQUE ABONO LIQUIDO DE  ALTO VOLUMEN" },
-  { codigo:"10130425", denominacion:"TANQUE ABONO LIQUIDO DE  ALTO VOLUMEN" },
-  { codigo:"10130454", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
-  { codigo:"10130085", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130082", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130081", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130083", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130084", denominacion:"FERTILIZADORA ABONO LIQUIDO" },
-  { codigo:"10130311", denominacion:"FERTICULTIVADORA DE ABONO LIQUIDO" },
-  { codigo:"10130346", denominacion:"FERTICULTIVADORA DE ABONO LIQUIDO" },
-  { codigo:"10130471", denominacion:"COMPOSTADORA DE SUELOS" },
-  { codigo:"10130409", denominacion:"COMPOSTADORA DE SUELOS" },
-  { codigo:"10010152", denominacion:"TRACTOR AGRICOLA JOHN DEERE 7425" },
-  { codigo:"10130339", denominacion:"ENCALADORA" },
-  { codigo:"10130402", denominacion:"ENCALADORA CACHAZERA" },
-  { codigo:"10130240", denominacion:"ESCARIFICADOR..." },
-  { codigo:"10010348", denominacion:"TRACTOR AGRICOLA JOHN DEERE 8245R" },
-  { codigo:"10010687", denominacion:"TRACTOR AGRICOLA CASE FARMALL 100" },
-  { codigo:"10130067", denominacion:"FERTILIZADORA ABONO GRANULADO" },
-  { codigo:"10130466", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
-  { codigo:"10130465", denominacion:"FERTILIZADORA ABONO LIQUIDO ALTO VOLUMEN" },
-  { codigo:"10010465", denominacion:"TRACTOR CASE IH PUMA" },
-  { codigo:"10051856", denominacion:"CAMIÓN HINO 2023" },
-  { codigo:"10051598", denominacion:"CAMIÓN HINO 2020" },
-  { codigo:"10051704", denominacion:"CAMION HINO 5.25 TON" },
-  { codigo:"10010405", denominacion:"TRACTOR JOHN DEERE 8345R" },
-  { codigo:"10010491", denominacion:"TRACTOR AGRICOLA JOHN DEERE 7425" },
-  { codigo:"10010557", denominacion:"TRACTOR AGRICOLA CASE PUMA 210" },
-  { codigo:"10010376", denominacion:"TRACTOR JOHN DEERE 7210R" },
-  { codigo:"10010475", denominacion:"TRACTOR JOHN DEEREE 7210R" },
-  { codigo:"10010464", denominacion:"TRACTOR AGRÍCOLA CASE PUMA 210" },
-  { codigo:"10010466", denominacion:"TRACTOR CASE IH PUMA" },
-  { codigo:"10010714", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
-  { codigo:"10010713", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
-  { codigo:"10010716", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
-  { codigo:"10010715", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
-  { codigo:"10130481", denominacion:"ESCARIFICADOR DE  4 CINCELES" },
-  { codigo:"10130482", denominacion:"ESCARIFICADOR DE  4 CINCELES" },
-  { codigo:"10130073", denominacion:"FERTILIZADORA DE ABONO LIQUIDO" },
-  { codigo:"10010549", denominacion:"TRACTOR AGRICOLA CASE PUMA 210" },
-  { codigo:"10130312", denominacion:"FERTILIZADORA DE ABONO LIQUIDO" },
-  { codigo:"10010490", denominacion:"TRACTOR AGRICOLA JOHN DEERE 7425" },
-  { codigo:"11130009", denominacion:"FERTILIZADORA ABONO GRANULADO" },
-  { codigo:"10010717", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
-  { codigo:"10010718", denominacion:"TRACTOR AGRICOLA CASE PUMA 225" },
-  { codigo:"10010413", denominacion:"TRACTOR JOHN DEERE 8245R" },
-  { codigo:"10010417", denominacion:"TRACTOR JOHN DEERE 8245R" },
-  { codigo:"10010374", denominacion:"TRACTOR JOHN DEERE 7210R" },
-  { codigo:"10070279", denominacion:"GONDOLA" },
-  { codigo:"10130438", denominacion:"ENCALADORA CIVEMASA" },
-  { codigo:"10130239", denominacion:"ECARFICADOR" },
-  { codigo:"10010414", denominacion:"TRACTOR JOHN DEERE 8245R" },
-  { codigo:"10130061", denominacion:"FERTILIZADORA ABONO GRANULAD" },
-  { codigo:"10010736", denominacion:"TRACTOR AGRÍCOLA 6140J" }
-];
-
-const nowLocalISO = () => {
-  const d = new Date();
+function parseDT(v){
+  if(!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDT(d){
+  if(!d) return "—";
   const pad = n => String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
-
-function uid(prefix="id") {
-  return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function hoursBetween(a,b){
+  if(!a || !b) return null;
+  const ms = b.getTime() - a.getTime();
+  return ms >= 0 ? ms/36e5 : null;
+}
+function fmtH(h){
+  if(h === null || h === undefined) return "—";
+  if(!isFinite(h)) return "—";
+  return (Math.round(h*100)/100).toFixed(2) + " h";
 }
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return defaultState();
-    const s = JSON.parse(raw);
-    return normalizeState(s);
-  } catch {
-    return defaultState();
+function startOfDay(d){
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function bucketKey(d, mode){
+  // day, week, month
+  const dd = new Date(d);
+  if(mode === "day"){
+    const x = startOfDay(dd);
+    return x.toISOString().slice(0,10);
+  }
+  if(mode === "month"){
+    return `${dd.getFullYear()}-${String(dd.getMonth()+1).padStart(2,"0")}`;
+  }
+  // week (ISO-ish simple): lunes como inicio
+  const day = (dd.getDay()+6)%7; // lunes=0
+  const monday = new Date(dd);
+  monday.setDate(dd.getDate()-day);
+  monday.setHours(0,0,0,0);
+  const y = monday.getFullYear();
+  const m = String(monday.getMonth()+1).padStart(2,"0");
+  const da = String(monday.getDate()).padStart(2,"0");
+  return `${y}-W(${m}-${da})`;
+}
+
+function severityClass(sev){
+  if(sev === "Alta") return "bad";
+  if(sev === "Media") return "warn";
+  return "ok";
+}
+
+/* =========================
+   DATOS
+========================= */
+let records = loadRecords();
+let editId = null;
+
+function loadRecords(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
   }
 }
-
-function saveState() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
-  pillStatus.textContent = "Guardado ✔";
-  setTimeout(()=> pillStatus.textContent = "Guardado local", 900);
+function saveRecords(){
+  localStorage.setItem(LS_KEY, JSON.stringify(records));
 }
 
-function defaultState() {
-  return normalizeState({
-    config: { thresholdHours: 6, repeatMinutes: 30 },
-    equipos: PRELOAD_EQUIPOS.map(x => ({
-      id: uid("eq"),
-      codigo: x.codigo,
-      nombre: x.denominacion,
-      area: "",
-      modelo: "",
-      serie: "",
-      notas: ""
-    })),
-    fallas: []
-  });
+function normalizeRecord(r){
+  // asegura estructura
+  return {
+    id: r.id || uid(),
+    equipment: (r.equipment || "").trim(),
+    mechanic: (r.mechanic || "").trim(),
+    severity: r.severity || "Media",
+    failureDesc: r.failureDesc || "",
+    tFailure: r.tFailure || "",
+    tRepairStart: r.tRepairStart || "",
+    tRepairEnd: r.tRepairEnd || "",
+    opHours: (r.opHours === "" || r.opHours === null || r.opHours === undefined) ? "" : Number(r.opHours),
+    notes: r.notes || ""
+  };
 }
 
-function normalizeState(s) {
-  if (!s || typeof s !== "object") s = {};
-  s.config ??= { thresholdHours: 6, repeatMinutes: 30 };
-  if (typeof s.config.thresholdHours !== "number") s.config.thresholdHours = 6;
-  if (typeof s.config.repeatMinutes !== "number") s.config.repeatMinutes = 30;
-  s.equipos = Array.isArray(s.equipos) ? s.equipos : [];
-  s.fallas = Array.isArray(s.fallas) ? s.fallas : [];
+/* =========================
+   CÁLCULOS MTTR / MTBF
+========================= */
+function recordTimes(r){
+  const tf = parseDT(r.tFailure);
+  const trs = parseDT(r.tRepairStart);
+  const tre = parseDT(r.tRepairEnd);
 
-  for (const e of s.equipos) {
-    if (!("codigo" in e)) e.codigo = "";
+  const downtime = hoursBetween(tf, tre); // del paro al listo
+  const repStart = trs || tf;
+  const repairTime = hoursBetween(repStart, tre); // tiempo trabajando (si no hay inicio rep usa inicio falla)
+  return { tf, trs, tre, downtime, repairTime };
+}
+
+function mtbfByEquipment(list){
+  // MTBF por equipo usando inicios de falla
+  const map = new Map();
+  for(const r of list){
+    const tf = parseDT(r.tFailure);
+    if(!tf) continue;
+    const eq = r.equipment || "—";
+    if(!map.has(eq)) map.set(eq, []);
+    map.get(eq).push(tf);
   }
-
-  for (const f of s.fallas) {
-    f.comentarios = Array.isArray(f.comentarios) ? f.comentarios : [];
-    if (typeof f.resuelta !== "boolean") f.resuelta = false;
-    if (!f.createdAt) f.createdAt = new Date().toISOString();
-    if (!("lastNotifiedAt" in f)) f.lastNotifiedAt = null;
-  }
-  return s;
-}
-
-let state = loadState();
-
-/* ===========================
-   DOM refs
-   =========================== */
-const pillStatus = document.getElementById("pillStatus");
-const tabs = [...document.querySelectorAll(".tab")];
-const panes = {
-  fallas: document.getElementById("tab-fallas"),
-  equipos: document.getElementById("tab-equipos"),
-  alertas: document.getElementById("tab-alertas")
-};
-
-// Crear falla
-const fEquipo = document.getElementById("fEquipo");          // hidden (equipoId)
-const fEquipoTxt = document.getElementById("fEquipoTxt");    // input visible
-const fEquipoSug = document.getElementById("fEquipoSug");    // dropdown
-
-const fTitulo = document.getElementById("fTitulo");
-const fFecha = document.getElementById("fFecha");
-const fUmbral = document.getElementById("fUmbral");
-const fDetalle = document.getElementById("fDetalle");
-const btnCrearFalla = document.getElementById("btnCrearFalla");
-const btnAutofecha = document.getElementById("btnAutofecha");
-
-// Filtros
-const qBuscar = document.getElementById("qBuscar");
-const qEstado = document.getElementById("qEstado");
-const qEquipo = document.getElementById("qEquipo");
-const qOrden = document.getElementById("qOrden");
-const qSoloAlertas = document.getElementById("qSoloAlertas");
-
-const tbFallas = document.getElementById("tbFallas");
-const lblConteo = document.getElementById("lblConteo");
-const badgePendientes = document.getElementById("badgePendientes");
-
-const btnPermisoNotif = document.getElementById("btnPermisoNotif");
-const btnResetDemo = document.getElementById("btnResetDemo");
-
-// Equipos
-const eCodigo = document.getElementById("eCodigo");
-const eNombre = document.getElementById("eNombre");
-const eArea = document.getElementById("eArea");
-const eModelo = document.getElementById("eModelo");
-const eSerie = document.getElementById("eSerie");
-const eNotas = document.getElementById("eNotas");
-const btnCrearEquipo = document.getElementById("btnCrearEquipo");
-
-const eImportText = document.getElementById("eImportText");
-const btnImportEquiposPegado = document.getElementById("btnImportEquiposPegado");
-
-const tbEquipos = document.getElementById("tbEquipos");
-
-// Config
-const cfgUmbral = document.getElementById("cfgUmbral");
-const cfgRepetir = document.getElementById("cfgRepetir");
-const btnGuardarCfg = document.getElementById("btnGuardarCfg");
-const btnTestAviso = document.getElementById("btnTestAviso");
-
-// Respaldo
-const btnExportar = document.getElementById("btnExportar");
-const btnImportar = document.getElementById("btnImportar");
-const fileImport = document.getElementById("fileImport");
-const dbgInfo = document.getElementById("dbgInfo");
-
-// Dialog falla
-const dlgFalla = document.getElementById("dlgFalla");
-const dEquipo = document.getElementById("dEquipo");
-const dTitulo = document.getElementById("dTitulo");
-const dFecha = document.getElementById("dFecha");
-const dUmbral = document.getElementById("dUmbral");
-const dDetalle = document.getElementById("dDetalle");
-const dEstado = document.getElementById("dEstado");
-const dSolucion = document.getElementById("dSolucion");
-const dComentariosInfo = document.getElementById("dComentariosInfo");
-const dNuevoComentario = document.getElementById("dNuevoComentario");
-const dComentariosLista = document.getElementById("dComentariosLista");
-const btnAddComentario = document.getElementById("btnAddComentario");
-const btnGuardarFallaEdit = document.getElementById("btnGuardarFallaEdit");
-const btnCerrarDlg = document.getElementById("btnCerrarDlg");
-
-// Dialog equipo
-const dlgEquipo = document.getElementById("dlgEquipo");
-const deCodigo = document.getElementById("deCodigo");
-const deNombre = document.getElementById("deNombre");
-const deArea = document.getElementById("deArea");
-const deModelo = document.getElementById("deModelo");
-const deSerie = document.getElementById("deSerie");
-const deNotas = document.getElementById("deNotas");
-const btnGuardarEquipoEdit = document.getElementById("btnGuardarEquipoEdit");
-const btnCerrarDlgEq = document.getElementById("btnCerrarDlgEq");
-
-// Toast
-const toast = document.getElementById("toast");
-
-let editingFallaId = null;
-let editingEquipoId = null;
-
-/* ===========================
-   Helpers
-   =========================== */
-
-function getEquipoById(id) {
-  return state.equipos.find(e => e.id === id) || null;
-}
-
-function getEquipoName(id) {
-  const eq = getEquipoById(id);
-  if (!eq) return "Equipo eliminado";
-  const c = (eq.codigo || "").trim();
-  const n = (eq.nombre || "").trim();
-  const txt = `${c} • ${n}`.trim();
-  return txt || "Equipo";
-}
-
-function parseDateTimeLocal(value) {
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return null;
-  return d;
-}
-
-function fmtDateTime(isoOrDate) {
-  const d = (isoOrDate instanceof Date) ? isoOrDate : new Date(isoOrDate);
-  if (isNaN(d.getTime())) return "-";
-  return d.toLocaleString("es-GT", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-}
-
-function hoursSince(occurredIso) {
-  const d = new Date(occurredIso);
-  const ms = Date.now() - d.getTime();
-  return ms / 3600000;
-}
-
-function classifyDelay(f) {
-  if (f.resuelta) return { cls:"b-ok", label:"Solucionada", sev:"good" };
-  const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
-  const h = hoursSince(f.occurredAt);
-  if (h >= th * 2) return { cls:"b-bad", label:"Pendiente (crítica)", sev:"bad" };
-  if (h >= th) return { cls:"b-warn", label:"Pendiente (alerta)", sev:"warn" };
-  return { cls:"", label:"Pendiente", sev:"warn" };
-}
-
-function showToast(title, msg, sev="warn") {
-  const div = document.createElement("div");
-  div.className = `t ${sev}`;
-  div.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="meta">${escapeHtml(msg)}</div>`;
-  toast.appendChild(div);
-  setTimeout(()=> div.remove(), 7000);
-}
-
-function escapeHtml(s) {
-  return String(s ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m]));
-}
-
-function notify(title, body) {
-  showToast(title, body, "warn");
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-  try { new Notification(title, { body }); } catch {}
-}
-
-function refreshDebug() {
-  dbgInfo.textContent =
-    `Equipos: ${state.equipos.length} | Fallas: ${state.fallas.length} | ` +
-    `Umbral global: ${state.config.thresholdHours} h | Repetir: ${state.config.repeatMinutes} min`;
-}
-
-function parseEquiposFromText(txt) {
-  const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const result = [];
-  for (const line of lines) {
-    const parts = line.split(/\t+/);
-    let codigo = "", denom = "";
-    if (parts.length >= 2) {
-      codigo = parts[0].trim();
-      denom = parts.slice(1).join(" ").trim();
-    } else {
-      const m = line.match(/^(\S+)\s+(.*)$/);
-      if (m) { codigo = m[1].trim(); denom = m[2].trim(); }
+  const out = new Map();
+  for(const [eq, dates] of map.entries()){
+    dates.sort((a,b)=>a-b);
+    if(dates.length < 2){
+      out.set(eq, null);
+      continue;
     }
-    if (!codigo || !denom) continue;
-    result.push({ codigo, denominacion: denom });
+    let sum = 0, n = 0;
+    for(let i=1;i<dates.length;i++){
+      const h = hoursBetween(dates[i-1], dates[i]);
+      if(h!==null){ sum += h; n++; }
+    }
+    out.set(eq, n ? (sum/n) : null);
   }
-  return result;
+  return out;
 }
 
-function equipoExistsByCodigo(codigo) {
-  const c = (codigo||"").trim();
-  if (!c) return false;
-  return state.equipos.some(e => (e.codigo||"").trim() === c);
+function avg(arr){
+  const v = arr.filter(x => x!==null && x!==undefined && isFinite(x));
+  if(!v.length) return null;
+  return v.reduce((a,b)=>a+b,0)/v.length;
 }
 
-/* ===========================
-   Autocomplete propio (móvil)
-   =========================== */
+function computeKPIs(filtered){
+  const times = filtered.map(r => recordTimes(r));
+  const mttrOverall = avg(times.map(x => x.repairTime));
+  const downtimeOverall = avg(times.map(x => x.downtime));
 
-function pickEquipo(eq) {
-  fEquipo.value = eq.id;
-  fEquipoTxt.value = `${(eq.codigo||"").trim()} • ${eq.nombre||""}`.trim();
-  fEquipoSug.style.display = "none";
-  fEquipoSug.innerHTML = "";
+  const mtbfMap = mtbfByEquipment(filtered);
+  // MTBF general: promedio de MTBF por equipo (solo equipos con >=2 fallas)
+  const mtbfOverall = avg([...mtbfMap.values()]);
+
+  const total = filtered.length;
+  const high = filtered.filter(r => r.severity==="Alta").length;
+
+  return { mttrOverall, downtimeOverall, mtbfOverall, total, high };
 }
 
-function buildEquipoSuggestions(q) {
-  const v = (q || "").trim().toLowerCase();
-  if (!v) return [];
+/* =========================
+   FILTROS
+========================= */
+function getFilters(){
+  const from = document.querySelector("#fFrom").value;
+  const to = document.querySelector("#fTo").value;
+  const eq = document.querySelector("#fEquipment").value;
+  const me = document.querySelector("#fMechanic").value;
+  const bucket = document.querySelector("#fBucket").value;
 
-  const matches = state.equipos.filter(e => {
-    const codigo = (e.codigo||"").trim().toLowerCase();
-    const nombre = (e.nombre||"").trim().toLowerCase();
-    return codigo.includes(v) || nombre.includes(v);
+  const fromD = from ? new Date(from+"T00:00:00") : null;
+  const toD = to ? new Date(to+"T23:59:59") : null;
+
+  return { fromD, toD, eq, me, bucket };
+}
+
+function applyFilters(){
+  const { fromD, toD, eq, me } = getFilters();
+  return records.filter(r=>{
+    const tf = parseDT(r.tFailure);
+    if(!tf) return false;
+    if(fromD && tf < fromD) return false;
+    if(toD && tf > toD) return false;
+    if(eq && r.equipment !== eq) return false;
+    if(me && r.mechanic !== me) return false;
+    return true;
   });
-
-  matches.sort((a,b)=>{
-    const ac = ((a.codigo||"").trim().toLowerCase().startsWith(v)) ? 0 : 1;
-    const bc = ((b.codigo||"").trim().toLowerCase().startsWith(v)) ? 0 : 1;
-    if (ac !== bc) return ac - bc;
-    return ((a.codigo||"") > (b.codigo||"")) ? 1 : -1;
-  });
-
-  return matches.slice(0, 12);
 }
 
-function renderEquipoSuggestions(list) {
-  if (!list.length) {
-    fEquipoSug.style.display = "none";
-    fEquipoSug.innerHTML = "";
-    return;
-  }
+/* =========================
+   UI: DROPDOWNS
+========================= */
+function refreshDropdowns(){
+  const eqSel = document.querySelector("#fEquipment");
+  const meSel = document.querySelector("#fMechanic");
+  const eqVal = eqSel.value;
+  const meVal = meSel.value;
 
-  fEquipoSug.innerHTML = list.map(e => {
-    const code = (e.codigo||"").trim();
-    const name = (e.nombre||"").trim();
-    return `
-      <button type="button" class="acItem" data-eqid="${e.id}">
-        ${escapeHtml(code)} • ${escapeHtml(name)}
-        <span class="mut">${escapeHtml(e.area || "")}</span>
-      </button>
-    `;
-  }).join("");
+  const eqs = [...new Set(records.map(r=>r.equipment).filter(Boolean))].sort();
+  const mes = [...new Set(records.map(r=>r.mechanic).filter(Boolean))].sort();
 
-  fEquipoSug.style.display = "block";
+  eqSel.innerHTML = `<option value="">(Todos)</option>` + eqs.map(x=>`<option>${escapeHtml(x)}</option>`).join("");
+  meSel.innerHTML = `<option value="">(Todos)</option>` + mes.map(x=>`<option>${escapeHtml(x)}</option>`).join("");
+
+  if(eqs.includes(eqVal)) eqSel.value = eqVal;
+  if(mes.includes(meVal)) meSel.value = meVal;
 }
 
-fEquipoTxt.addEventListener("input", () => {
-  fEquipo.value = ""; // invalida selección previa hasta seleccionar
-  const list = buildEquipoSuggestions(fEquipoTxt.value);
-  renderEquipoSuggestions(list);
-});
-
-fEquipoTxt.addEventListener("focus", () => {
-  const list = buildEquipoSuggestions(fEquipoTxt.value);
-  renderEquipoSuggestions(list);
-});
-
-fEquipoSug.addEventListener("click", (ev) => {
-  const btn = ev.target.closest("button[data-eqid]");
-  if (!btn) return;
-  const id = btn.dataset.eqid;
-  const eq = state.equipos.find(x => x.id === id);
-  if (eq) pickEquipo(eq);
-});
-
-document.addEventListener("click", (ev) => {
-  const inside = ev.target.closest(".acWrap");
-  if (!inside) fEquipoSug.style.display = "none";
-});
-
-/* ===========================
-   Render
-   =========================== */
-
-function renderSelects() {
-  const opts = state.equipos.map(e => {
-    const txt = `${(e.codigo||"").trim()} • ${e.nombre||""}`.trim();
-    return `<option value="${e.id}">${escapeHtml(txt)}</option>`;
-  }).join("");
-
-  dEquipo.innerHTML = opts || `<option value="">(Crea un equipo primero)</option>`;
-
-  const current = qEquipo.value;
-  qEquipo.innerHTML = `<option value="todos">Todos</option>` + (opts || "");
-  if ([...qEquipo.options].some(o => o.value === current)) qEquipo.value = current;
-
-  if (state.equipos[0] && !fEquipoTxt.value.trim()) {
-    pickEquipo(state.equipos[0]);
-  }
+function escapeHtml(s){
+  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-function renderEquipos() {
-  tbEquipos.innerHTML = state.equipos.map(eq => `
-    <tr>
-      <td><strong>${escapeHtml(eq.codigo || "-")}</strong></td>
-      <td>
-        <strong>${escapeHtml(eq.nombre || "-")}</strong>
-        <div class="muted">${escapeHtml(eq.serie || "")}</div>
-      </td>
-      <td>${escapeHtml(eq.area || "-")}</td>
-      <td>${escapeHtml(eq.modelo || "-")}</td>
-      <td class="right">
-        <div class="actions">
-          <button class="small" data-act="editEq" data-id="${eq.id}">Editar</button>
-          <button class="small danger" data-act="delEq" data-id="${eq.id}">Eliminar</button>
-        </div>
-      </td>
-    </tr>
-  `).join("") || `<tr><td colspan="5" class="muted">No hay equipos todavía.</td></tr>`;
-}
+/* =========================
+   UI: KPIs
+========================= */
+function renderKPIs(filtered){
+  const k = computeKPIs(filtered);
 
-function filteredFallas() {
-  const text = qBuscar.value.trim().toLowerCase();
-  const est = qEstado.value;
-  const eq = qEquipo.value;
-  const soloA = qSoloAlertas.value === "si";
+  const chips = [
+    { k:"Registros", v: k.total, cls:"ok" },
+    { k:"Fallas Alta", v: k.high, cls: k.high>0 ? "warn":"ok" },
+    { k:"MTTR (prom.)", v: k.mttrOverall===null ? "—" : fmtH(k.mttrOverall), cls:"ok" },
+    { k:"Downtime (prom.)", v: k.downtimeOverall===null ? "—" : fmtH(k.downtimeOverall), cls:"ok" },
+    { k:"MTBF (prom.)", v: k.mtbfOverall===null ? "—" : fmtH(k.mtbfOverall), cls: k.mtbfOverall===null ? "warn":"ok" },
+  ];
 
-  let arr = [...state.fallas];
-
-  if (est === "pendientes") arr = arr.filter(f => !f.resuelta);
-  if (est === "solucionadas") arr = arr.filter(f => f.resuelta);
-
-  if (eq !== "todos") arr = arr.filter(f => f.equipoId === eq);
-
-  if (text) {
-    arr = arr.filter(f => {
-      const hay = [
-        getEquipoName(f.equipoId),
-        f.titulo, f.detalle,
-        (f.comentarios||[]).map(c => c.text).join(" ")
-      ].join(" ").toLowerCase();
-      return hay.includes(text);
-    });
-  }
-
-  if (soloA) {
-    arr = arr.filter(f => {
-      if (f.resuelta) return false;
-      const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
-      return hoursSince(f.occurredAt) >= th;
-    });
-  }
-
-  const ord = qOrden.value;
-  if (ord === "recientes") arr.sort((a,b)=> new Date(b.occurredAt)-new Date(a.occurredAt));
-  if (ord === "antiguas") arr.sort((a,b)=> new Date(a.occurredAt)-new Date(b.occurredAt));
-  if (ord === "mas_atrasadas") {
-    arr.sort((a,b)=>{
-      const aKey = a.resuelta ? -1 : hoursSince(a.occurredAt);
-      const bKey = b.resuelta ? -1 : hoursSince(b.occurredAt);
-      return bKey - aKey;
-    });
-  }
-
-  return arr;
-}
-
-function renderFallas() {
-  const pend = state.fallas.filter(f => !f.resuelta).length;
-  badgePendientes.textContent = `Pendientes: ${pend}`;
-  badgePendientes.className = "badge " + (pend === 0 ? "b-ok" : "b-warn");
-
-  const arr = filteredFallas();
-  lblConteo.textContent = `${arr.length} registro(s) mostrado(s)`;
-
-  tbFallas.innerHTML = arr.map(f => {
-    const cls = classifyDelay(f);
-    const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
-    const h = hoursSince(f.occurredAt);
-    const atras = f.resuelta ? "-" : `${h.toFixed(1)} h (umbral ${th} h)`;
-
-    return `
-      <tr>
-        <td><span class="badge ${cls.cls}">${escapeHtml(cls.label)}</span></td>
-        <td><strong>${escapeHtml(getEquipoName(f.equipoId))}</strong></td>
-        <td>
-          <strong>${escapeHtml(f.titulo || "(Sin título)")}</strong>
-          <div class="muted">${escapeHtml((f.detalle||"").slice(0,90))}${(f.detalle||"").length>90?"…":""}</div>
-        </td>
-        <td>${escapeHtml(fmtDateTime(f.occurredAt))}</td>
-        <td>${escapeHtml(atras)}</td>
-        <td class="right">
-          <div class="actions">
-            <button class="small" data-act="editF" data-id="${f.id}">Editar</button>
-            ${f.resuelta
-              ? `<button class="small" data-act="reopenF" data-id="${f.id}">Reabrir</button>`
-              : `<button class="small good" data-act="solveF" data-id="${f.id}">Marcar solucionada</button>`
-            }
-            <button class="small danger" data-act="delF" data-id="${f.id}">Eliminar</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("") || `<tr><td colspan="6" class="muted">No hay fallas con esos filtros.</td></tr>`;
-}
-
-function renderAll() {
-  renderSelects();
-  renderEquipos();
-  renderFallas();
-  cfgUmbral.value = state.config.thresholdHours;
-  cfgRepetir.value = state.config.repeatMinutes;
-  if (!fFecha.value) fFecha.value = nowLocalISO();
-  refreshDebug();
-}
-
-/* ===========================
-   Tabs
-   =========================== */
-tabs.forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    tabs.forEach(t=>t.classList.remove("active"));
-    btn.classList.add("active");
-    const tab = btn.dataset.tab;
-    Object.values(panes).forEach(p=> p.style.display="none");
-    panes[tab].style.display = "";
-  });
-});
-
-/* ===========================
-   Acciones: Crear/Editar
-   =========================== */
-
-btnAutofecha.addEventListener("click", ()=> fFecha.value = nowLocalISO());
-
-btnCrearEquipo.addEventListener("click", ()=>{
-  const nombre = eNombre.value.trim();
-  if (!nombre) return showToast("Falta la denominación", "Escribe un nombre para guardar.", "bad");
-
-  state.equipos.push({
-    id: uid("eq"),
-    codigo: eCodigo.value.trim(),
-    nombre,
-    area: eArea.value.trim(),
-    modelo: eModelo.value.trim(),
-    serie: eSerie.value.trim(),
-    notas: eNotas.value.trim()
-  });
-
-  eCodigo.value = "";
-  eNombre.value = "";
-  eArea.value = "";
-  eModelo.value = "";
-  eSerie.value = "";
-  eNotas.value = "";
-
-  saveState();
-  renderAll();
-  showToast("Equipo guardado", nombre, "good");
-});
-
-btnImportEquiposPegado.addEventListener("click", ()=>{
-  const txt = eImportText.value.trim();
-  if (!txt) return showToast("Nada que importar", "Pega tu lista primero.", "bad");
-
-  const items = parseEquiposFromText(txt);
-  if (!items.length) return showToast("Formato no reconocido", "Asegúrate de tener Código y Denominación por línea.", "bad");
-
-  let added = 0, skipped = 0;
-  for (const it of items) {
-    if (equipoExistsByCodigo(it.codigo)) { skipped++; continue; }
-    state.equipos.push({
-      id: uid("eq"),
-      codigo: it.codigo,
-      nombre: it.denominacion,
-      area: "",
-      modelo: "",
-      serie: "",
-      notas: ""
-    });
-    added++;
-  }
-
-  saveState();
-  renderAll();
-  showToast("Importación terminada", `Agregados: ${added} • Duplicados omitidos: ${skipped}`, "good");
-  eImportText.value = "";
-});
-
-btnCrearFalla.addEventListener("click", ()=>{
-  if (!state.equipos.length) return showToast("Primero crea un equipo", "Ve a la pestaña Equipos.", "bad");
-
-  const equipoId = fEquipo.value;
-  if (!equipoId) {
-    return showToast("Equipo no seleccionado", "Escribe el código y selecciona una coincidencia.", "bad");
-  }
-
-  const titulo = fTitulo.value.trim();
-  const dt = parseDateTimeLocal(fFecha.value);
-  if (!dt) return showToast("Fecha/hora inválida", "Revisa la fecha/hora de la falla.", "bad");
-
-  const umbralRaw = fUmbral.value.trim();
-  const thresholdHours = umbralRaw === "" ? null : Number(umbralRaw);
-  if (umbralRaw !== "" && (!isFinite(thresholdHours) || thresholdHours < 0)) {
-    return showToast("Umbral inválido", "Debe ser un número >= 0.", "bad");
-  }
-
-  state.fallas.push({
-    id: uid("fa"),
-    equipoId,
-    titulo,
-    detalle: fDetalle.value.trim(),
-    occurredAt: dt.toISOString(),
-    thresholdHours: thresholdHours === null ? undefined : thresholdHours,
-    resuelta: false,
-    resolvedAt: null,
-    solucionNotas: "",
-    comentarios: [],
-    lastNotifiedAt: null,
-    createdAt: new Date().toISOString()
-  });
-
-  fTitulo.value = "";
-  fDetalle.value = "";
-  fUmbral.value = "";
-  fFecha.value = nowLocalISO();
-
-  saveState();
-  renderFallas();
-  showToast("Falla registrada", `${getEquipoName(equipoId)} • ${titulo || "Sin título"}`, "good");
-});
-
-function openFallaDialog(f) {
-  editingFallaId = f.id;
-  dEquipo.value = f.equipoId;
-  dTitulo.value = f.titulo || "";
-
-  const d = new Date(f.occurredAt);
-  const pad = n => String(n).padStart(2,"0");
-  const localVal = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  dFecha.value = localVal;
-
-  dUmbral.value = (typeof f.thresholdHours === "number") ? f.thresholdHours : "";
-  dDetalle.value = f.detalle || "";
-  dEstado.value = f.resuelta ? "solucionada" : "pendiente";
-  dSolucion.value = f.solucionNotas || "";
-  renderComentarios(f);
-  dlgFalla.showModal();
-}
-
-function renderComentarios(f) {
-  const list = (f.comentarios||[]).slice().sort((a,b)=> new Date(b.at)-new Date(a.at));
-  dComentariosInfo.textContent = list.length ? `${list.length} comentario(s)` : "Sin comentarios.";
-  dComentariosLista.innerHTML = list.map(c => `
-    <div class="card" style="margin:8px 0; background: rgba(2,6,23,.25)">
-      <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
-        <div><strong>${escapeHtml(fmtDateTime(c.at))}</strong></div>
-        <button class="small danger" data-act="delCom" data-id="${f.id}" data-cid="${c.id}">Eliminar</button>
-      </div>
-      <div class="muted" style="margin-top:6px; white-space: pre-wrap;">${escapeHtml(c.text)}</div>
+  document.querySelector("#kpis").innerHTML = chips.map(c => `
+    <div class="chip ${c.cls}">
+      <span class="k">${c.k}</span>
+      <b>${c.v}</b>
     </div>
   `).join("");
 }
 
-btnAddComentario.addEventListener("click", ()=>{
-  const text = dNuevoComentario.value.trim();
-  if (!text) return showToast("Comentario vacío", "Escribe algo antes de agregar.", "bad");
-  const f = state.fallas.find(x => x.id === editingFallaId);
-  if (!f) return;
-  f.comentarios.push({ id: uid("c"), at: new Date().toISOString(), text });
-  dNuevoComentario.value = "";
-  saveState();
-  renderComentarios(f);
-  showToast("Comentario agregado", "Se guardó en el historial.", "good");
-});
+/* =========================
+   UI: TABLA
+========================= */
+function renderTable(filtered){
+  const mtbfMap = mtbfByEquipment(filtered);
 
-btnGuardarFallaEdit.addEventListener("click", ()=>{
-  const f = state.fallas.find(x => x.id === editingFallaId);
-  if (!f) return;
+  // orden: más recientes primero
+  const sorted = [...filtered].sort((a,b)=>{
+    const da = parseDT(a.tFailure) || new Date(0);
+    const db = parseDT(b.tFailure) || new Date(0);
+    return db-da;
+  });
 
-  const dt = parseDateTimeLocal(dFecha.value);
-  if (!dt) return showToast("Fecha/hora inválida", "Revisa la fecha/hora.", "bad");
+  const tb = document.querySelector("#tbody");
+  tb.innerHTML = sorted.map(r=>{
+    const t = recordTimes(r);
+    const mtbfEq = mtbfMap.get(r.equipment) ?? null;
 
-  const umbralRaw = dUmbral.value.trim();
-  const thresholdHours = umbralRaw === "" ? null : Number(umbralRaw);
-  if (umbralRaw !== "" && (!isFinite(thresholdHours) || thresholdHours < 0)) {
-    return showToast("Umbral inválido", "Debe ser un número >= 0.", "bad");
+    return `
+      <tr>
+        <td><b>${escapeHtml(r.equipment || "—")}</b></td>
+        <td>${escapeHtml(r.mechanic || "—")}</td>
+        <td><span class="pill ${severityClass(r.severity)}">${escapeHtml(r.severity)}</span></td>
+        <td>${fmtDT(t.tf)}</td>
+        <td>${fmtDT(t.trs)}</td>
+        <td>${fmtDT(t.tre)}</td>
+        <td>${fmtH(t.downtime)}</td>
+        <td>${fmtH(t.repairTime)}</td>
+        <td>${fmtH(mtbfEq)}</td>
+        <td>${escapeHtml((r.notes || "").slice(0,120))}${(r.notes||"").length>120?"…":""}</td>
+        <td>
+          <div class="smallBtns">
+            <button class="small" onclick="startEdit('${r.id}')">Editar</button>
+            <button class="small danger" onclick="deleteRec('${r.id}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  if(!sorted.length){
+    tb.innerHTML = `<tr><td colspan="11" class="muted">No hay registros con los filtros actuales.</td></tr>`;
   }
-
-  f.equipoId = dEquipo.value;
-  f.titulo = dTitulo.value.trim();
-  f.detalle = dDetalle.value.trim();
-  f.occurredAt = dt.toISOString();
-  if (thresholdHours === null) delete f.thresholdHours; else f.thresholdHours = thresholdHours;
-
-  const wantSolved = dEstado.value === "solucionada";
-  if (wantSolved && !f.resuelta) f.resolvedAt = new Date().toISOString();
-  if (!wantSolved) f.resolvedAt = null;
-  f.resuelta = wantSolved;
-  f.solucionNotas = dSolucion.value.trim();
-
-  if (!f.resuelta) f.lastNotifiedAt = null;
-
-  saveState();
-  renderFallas();
-  dlgFalla.close();
-  showToast("Cambios guardados", "Se actualizó la falla.", "good");
-});
-
-btnCerrarDlg.addEventListener("click", ()=> dlgFalla.close());
-
-function openEquipoDialog(eq) {
-  editingEquipoId = eq.id;
-  deCodigo.value = eq.codigo || "";
-  deNombre.value = eq.nombre || "";
-  deArea.value = eq.area || "";
-  deModelo.value = eq.modelo || "";
-  deSerie.value = eq.serie || "";
-  deNotas.value = eq.notas || "";
-  dlgEquipo.showModal();
 }
 
-btnGuardarEquipoEdit.addEventListener("click", ()=>{
-  const eq = state.equipos.find(x => x.id === editingEquipoId);
-  if (!eq) return;
-  const nombre = deNombre.value.trim();
-  if (!nombre) return showToast("Falta la denominación", "No puede quedar vacío.", "bad");
+/* =========================
+   CHARTS
+========================= */
+let chartFailures = null;
+let chartMechanics = null;
 
-  eq.codigo = deCodigo.value.trim();
-  eq.nombre = nombre;
-  eq.area = deArea.value.trim();
-  eq.modelo = deModelo.value.trim();
-  eq.serie = deSerie.value.trim();
-  eq.notas = deNotas.value.trim();
+function buildFailuresSeries(filtered, bucketMode){
+  const map = new Map();
+  for(const r of filtered){
+    const tf = parseDT(r.tFailure);
+    if(!tf) continue;
+    const key = bucketKey(tf, bucketMode);
+    map.set(key, (map.get(key)||0)+1);
+  }
+  const labels = [...map.keys()].sort();
+  const data = labels.map(l => map.get(l));
+  return { labels, data };
+}
 
-  saveState();
-  renderAll();
-  dlgEquipo.close();
-  showToast("Equipo actualizado", nombre, "good");
+function buildMechanicSeries(filtered){
+  const map = new Map(); // mechanic -> { times:[], count }
+  for(const r of filtered){
+    const m = r.mechanic || "—";
+    const t = recordTimes(r);
+    if(!map.has(m)) map.set(m, { times:[], count:0 });
+    map.get(m).count++;
+    if(t.repairTime!==null) map.get(m).times.push(t.repairTime);
+  }
+  const labels = [...map.keys()].sort((a,b)=>a.localeCompare(b));
+  const avgMttr = labels.map(m => avg(map.get(m).times));
+  const counts = labels.map(m => map.get(m).count);
+  return { labels, avgMttr, counts };
+}
+
+function renderCharts(filtered){
+  const { bucket } = getFilters();
+
+  // Failures
+  const fs = buildFailuresSeries(filtered, bucket);
+  const ctxF = document.getElementById("chartFailures");
+  if(chartFailures) chartFailures.destroy();
+  chartFailures = new Chart(ctxF, {
+    type: "bar",
+    data: {
+      labels: fs.labels,
+      datasets: [{
+        label: "Fallas",
+        data: fs.data
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true }
+      },
+      scales: {
+        x: { ticks: { color: "#cbd5e1" }, grid: { color: "rgba(34,48,79,.35)" } },
+        y: { beginAtZero: true, ticks: { color: "#cbd5e1" }, grid: { color: "rgba(34,48,79,.35)" } }
+      }
+    }
+  });
+
+  // Mechanics
+  const ms = buildMechanicSeries(filtered);
+  const ctxM = document.getElementById("chartMechanics");
+  if(chartMechanics) chartMechanics.destroy();
+  chartMechanics = new Chart(ctxM, {
+    type: "bar",
+    data: {
+      labels: ms.labels,
+      datasets: [
+        {
+          label: "MTTR promedio (h)",
+          data: ms.avgMttr.map(v => v===null ? 0 : v),
+          yAxisID: "y"
+        },
+        {
+          type: "line",
+          label: "Reparaciones (conteo)",
+          data: ms.counts,
+          yAxisID: "y1",
+          tension: 0.25
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+      scales: {
+        x: { ticks: { color: "#cbd5e1" }, grid: { color: "rgba(34,48,79,.35)" } },
+        y: { beginAtZero: true, position: "left",
+          ticks: { color: "#cbd5e1" }, grid: { color: "rgba(34,48,79,.35)" },
+          title: { display: true, text: "Horas", color: "#9ca3af" }
+        },
+        y1: { beginAtZero: true, position: "right",
+          ticks: { color: "#cbd5e1" }, grid: { drawOnChartArea: false },
+          title: { display: true, text: "Cantidad", color: "#9ca3af" }
+        }
+      }
+    }
+  });
+}
+
+/* =========================
+   RENDER GENERAL
+========================= */
+function render(){
+  refreshDropdowns();
+  const filtered = applyFilters();
+  renderKPIs(filtered);
+  renderTable(filtered);
+  renderCharts(filtered);
+}
+
+/* =========================
+   CRUD
+========================= */
+function upsertRecord(rec){
+  const r = normalizeRecord(rec);
+  const idx = records.findIndex(x => x.id === r.id);
+  if(idx >= 0) records[idx] = r;
+  else records.push(r);
+  saveRecords();
+  render();
+}
+
+function deleteRec(id){
+  const r = records.find(x => x.id === id);
+  if(!r) return;
+  if(!confirm(`¿Eliminar el registro de ${r.equipment} (${r.mechanic})?`)) return;
+  records = records.filter(x => x.id !== id);
+  saveRecords();
+  if(editId === id) cancelEdit();
+  render();
+}
+window.deleteRec = deleteRec;
+
+function startEdit(id){
+  const r = records.find(x => x.id === id);
+  if(!r) return;
+  editId = id;
+
+  document.querySelector("#equipment").value = r.equipment || "";
+  document.querySelector("#mechanic").value = r.mechanic || "";
+  document.querySelector("#severity").value = r.severity || "Media";
+  document.querySelector("#failureDesc").value = r.failureDesc || "";
+  document.querySelector("#tFailure").value = r.tFailure || "";
+  document.querySelector("#tRepairStart").value = r.tRepairStart || "";
+  document.querySelector("#tRepairEnd").value = r.tRepairEnd || "";
+  document.querySelector("#opHours").value = r.opHours === "" ? "" : (r.opHours ?? "");
+  document.querySelector("#notes").value = r.notes || "";
+
+  document.querySelector("#btnCancel").style.display = "inline-block";
+  document.querySelector("#modeHint").textContent = "Modo: Editando";
+  document.querySelector("#btnSave").textContent = "Guardar cambios";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+window.startEdit = startEdit;
+
+function cancelEdit(){
+  editId = null;
+  document.querySelector("#frm").reset();
+  document.querySelector("#btnCancel").style.display = "none";
+  document.querySelector("#modeHint").textContent = "Modo: Nuevo";
+  document.querySelector("#btnSave").textContent = "Guardar registro";
+}
+window.cancelEdit = cancelEdit;
+
+/* =========================
+   EVENTOS
+========================= */
+document.querySelector("#frm").addEventListener("submit", (e)=>{
+  e.preventDefault();
+
+  const equipment = document.querySelector("#equipment").value.trim();
+  const mechanic = document.querySelector("#mechanic").value.trim();
+  const severity = document.querySelector("#severity").value;
+  const failureDesc = document.querySelector("#failureDesc").value.trim();
+  const tFailure = document.querySelector("#tFailure").value;
+  const tRepairStart = document.querySelector("#tRepairStart").value;
+  const tRepairEnd = document.querySelector("#tRepairEnd").value;
+  const opHoursRaw = document.querySelector("#opHours").value;
+  const notes = document.querySelector("#notes").value.trim();
+
+  const tf = parseDT(tFailure);
+  const tre = parseDT(tRepairEnd);
+  if(!tf || !tre){
+    alert("Revisa fechas: Inicio de falla y Fin de reparación son obligatorios.");
+    return;
+  }
+  if(tre < tf){
+    alert("Fin de reparación no puede ser antes del inicio de falla.");
+    return;
+  }
+  if(tRepairStart){
+    const trs = parseDT(tRepairStart);
+    if(trs && (trs < tf || trs > tre)){
+      alert("Inicio de reparación debe estar entre Inicio de falla y Fin de reparación.");
+      return;
+    }
+  }
+
+  const rec = {
+    id: editId || uid(),
+    equipment, mechanic, severity, failureDesc,
+    tFailure, tRepairStart, tRepairEnd,
+    opHours: opHoursRaw === "" ? "" : Number(opHoursRaw),
+    notes
+  };
+
+  upsertRecord(rec);
+  cancelEdit();
 });
 
-btnCerrarDlgEq.addEventListener("click", ()=> dlgEquipo.close());
+document.querySelector("#btnCancel").addEventListener("click", cancelEdit);
 
-/* ===========================
-   Delegación de eventos
-   =========================== */
-document.addEventListener("click", (ev)=>{
-  const b = ev.target.closest("button");
-  if (!b) return;
-  const act = b.dataset.act;
-  const id = b.dataset.id;
-  if (!act) return;
-
-  if (act === "editF") {
-    const f = state.fallas.find(x => x.id === id);
-    if (f) openFallaDialog(f);
-  }
-  if (act === "solveF") {
-    const f = state.fallas.find(x => x.id === id);
-    if (!f) return;
-    f.resuelta = true;
-    f.resolvedAt = new Date().toISOString();
-    saveState(); renderFallas();
-    showToast("Marcada como solucionada", `${getEquipoName(f.equipoId)} • ${f.titulo||"Sin título"}`, "good");
-  }
-  if (act === "reopenF") {
-    const f = state.fallas.find(x => x.id === id);
-    if (!f) return;
-    f.resuelta = false;
-    f.resolvedAt = null;
-    f.lastNotifiedAt = null;
-    saveState(); renderFallas();
-    showToast("Falla reabierta", `${getEquipoName(f.equipoId)} • ${f.titulo||"Sin título"}`, "warn");
-  }
-  if (act === "delF") {
-    const f = state.fallas.find(x => x.id === id);
-    if (!f) return;
-    if (!confirm("¿Eliminar esta falla?")) return;
-    state.fallas = state.fallas.filter(x => x.id !== id);
-    saveState(); renderFallas();
-    showToast("Falla eliminada", "Se eliminó del historial.", "good");
-  }
-
-  if (act === "editEq") {
-    const eq = state.equipos.find(x => x.id === id);
-    if (eq) openEquipoDialog(eq);
-  }
-  if (act === "delEq") {
-    const eq = state.equipos.find(x => x.id === id);
-    if (!eq) return;
-    if (!confirm(`¿Eliminar equipo "${eq.nombre}"?`)) return;
-    state.equipos = state.equipos.filter(x => x.id !== id);
-    saveState(); renderAll();
-    showToast("Equipo eliminado", eq.nombre, "good");
-  }
-
-  if (act === "delCom") {
-    const fallaId = b.dataset.id;
-    const cid = b.dataset.cid;
-    const f = state.fallas.find(x => x.id === fallaId);
-    if (!f) return;
-    if (!confirm("¿Eliminar este comentario?")) return;
-    f.comentarios = (f.comentarios||[]).filter(c => c.id !== cid);
-    saveState();
-    renderComentarios(f);
-    showToast("Comentario eliminado", "Se actualizó el historial.", "good");
-  }
+document.querySelector("#btnApply").addEventListener("click", (e)=>{ e.preventDefault(); render(); });
+document.querySelector("#btnClear").addEventListener("click", (e)=>{
+  e.preventDefault();
+  document.querySelector("#fFrom").value = "";
+  document.querySelector("#fTo").value = "";
+  document.querySelector("#fEquipment").value = "";
+  document.querySelector("#fMechanic").value = "";
+  document.querySelector("#fBucket").value = "week";
+  render();
 });
 
-/* ===========================
-   Filtros
-   =========================== */
-[qBuscar, qEstado, qEquipo, qOrden, qSoloAlertas].forEach(el => el.addEventListener("input", renderFallas));
-[qEstado, qEquipo, qOrden, qSoloAlertas].forEach(el => el.addEventListener("change", renderFallas));
+function setQuickRange(days){
+  const today = new Date();
+  const to = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const from = new Date(to);
+  from.setDate(from.getDate() - (days-1));
 
-/* ===========================
-   Config / Notifs
-   =========================== */
+  const pad = n => String(n).padStart(2,"0");
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
-btnGuardarCfg.addEventListener("click", ()=>{
-  const th = Number(cfgUmbral.value);
-  const rep = Number(cfgRepetir.value);
-  if (!isFinite(th) || th < 0) return showToast("Umbral inválido", "Debe ser número >= 0.", "bad");
-  if (!isFinite(rep) || rep < 1) return showToast("Repetición inválida", "Debe ser mínimo 1 minuto.", "bad");
-  state.config.thresholdHours = th;
-  state.config.repeatMinutes = rep;
-  saveState();
-  renderAll();
-  showToast("Configuración guardada", `Umbral ${th} h • Repetir ${rep} min`, "good");
+  document.querySelector("#fFrom").value = fmt(from);
+  document.querySelector("#fTo").value = fmt(to);
+  render();
+}
+document.querySelector("#btnQuick7").addEventListener("click", ()=>setQuickRange(7));
+document.querySelector("#btnQuick30").addEventListener("click", ()=>setQuickRange(30));
+document.querySelector("#btnQuickAll").addEventListener("click", ()=>{
+  document.querySelector("#fFrom").value = "";
+  document.querySelector("#fTo").value = "";
+  render();
 });
 
-btnPermisoNotif.addEventListener("click", async ()=>{
-  if (!("Notification" in window)) {
-    return showToast("No disponible", "Este navegador no soporta notificaciones.", "bad");
-  }
-  try {
-    const p = await Notification.requestPermission();
-    if (p === "granted") showToast("Listo", "Notificaciones activadas.", "good");
-    else showToast("Permiso no concedido", "Puedes usar avisos en pantalla igualmente.", "warn");
-  } catch {
-    showToast("Error", "No se pudo solicitar permiso.", "bad");
-  }
-});
-
-btnTestAviso.addEventListener("click", ()=>{
-  notify("Prueba de aviso", "Esto es un aviso de prueba del Control de Fallas.");
-});
-
-btnResetDemo.addEventListener("click", ()=>{
-  if (!confirm("¿Seguro? Esto borrará equipos y fallas.")) return;
-  localStorage.removeItem(STORE_KEY);
-  state = defaultState();
-  saveState();
-  renderAll();
-  showToast("Listo", "Se borró todo.", "good");
-});
-
-/* ===========================
-   Export / Import
-   =========================== */
-btnExportar.addEventListener("click", ()=>{
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+/* =========================
+   EXPORT / IMPORT
+========================= */
+document.querySelector("#btnExport").addEventListener("click", ()=>{
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    records
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `control_fallas_respaldo_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `mtbf_mttr_backup_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  showToast("Exportado", "Se descargó el respaldo JSON.", "good");
 });
 
-btnImportar.addEventListener("click", ()=> fileImport.click());
+document.querySelector("#fileImport").addEventListener("change", async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+  try{
+    const txt = await file.text();
+    const obj = JSON.parse(txt);
+    const imported = (obj.records || obj || []);
+    const normalized = imported.map(normalizeRecord);
 
-fileImport.addEventListener("change", async ()=>{
-  const file = fileImport.files?.[0];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const imported = JSON.parse(text);
-    state = normalizeState(imported);
-    saveState();
-    renderAll();
-    showToast("Importado", "Respaldo restaurado correctamente.", "good");
-  } catch {
-    showToast("Error", "El archivo no es un JSON válido.", "bad");
-  } finally {
-    fileImport.value = "";
-  }
-});
-
-/* ===========================
-   Motor de avisos
-   =========================== */
-function checkAlerts() {
-  const repeatMs = state.config.repeatMinutes * 60 * 1000;
-  let any = false;
-
-  for (const f of state.fallas) {
-    if (f.resuelta) continue;
-
-    const th = (typeof f.thresholdHours === "number") ? f.thresholdHours : state.config.thresholdHours;
-    if (th <= 0) continue;
-
-    const h = hoursSince(f.occurredAt);
-    if (h < th) continue;
-
-    any = true;
-    const last = f.lastNotifiedAt ? new Date(f.lastNotifiedAt).getTime() : 0;
-    const due = (Date.now() - last) >= repeatMs;
-
-    if (due) {
-      f.lastNotifiedAt = new Date().toISOString();
-      saveState();
-      const equipo = getEquipoName(f.equipoId);
-      const title = `ALERTA: Falla pendiente (${h.toFixed(1)} h)`;
-      const body = `${equipo} • ${f.titulo || "Sin título"}`;
-      notify(title, body);
+    if(!Array.isArray(normalized)) throw new Error("Formato inválido");
+    // merge por id (si existe, actualiza)
+    for(const r of normalized){
+      const idx = records.findIndex(x => x.id === r.id);
+      if(idx >= 0) records[idx] = r;
+      else records.push(r);
     }
+    saveRecords();
+    render();
+    alert("Importación completada.");
+  }catch(err){
+    alert("No pude importar ese archivo. Asegúrate que sea JSON de esta app.");
+  }finally{
+    e.target.value = "";
   }
+});
 
-  document.title = any ? "⚠ Control de Fallas" : "Control de Fallas";
-}
+document.querySelector("#btnReset").addEventListener("click", ()=>{
+  if(!confirm("Esto borrará todos los registros guardados en este navegador. ¿Continuar?")) return;
+  records = [];
+  saveRecords();
+  cancelEdit();
+  render();
+});
 
-setInterval(checkAlerts, 60 * 1000);
-setTimeout(checkAlerts, 800);
+/* =========================
+   INIT
+========================= */
+(function init(){
+  // sugerir fecha/hora actual en el formulario
+  const now = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const dtLocal = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-/* ===========================
-   Init
-   =========================== */
-fFecha.value = nowLocalISO();
-renderAll();
+  document.querySelector("#tFailure").value = dtLocal(now);
+  const end = new Date(now); end.setHours(end.getHours()+1);
+  document.querySelector("#tRepairEnd").value = dtLocal(end);
+
+  refreshDropdowns();
+  render();
+})();
 </script>
+
 </body>
 </html>
-```
